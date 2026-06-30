@@ -33,6 +33,7 @@ const TRANSLATIONS = {
     optCatLeisure: "🎮 تفریح و سرگرمی",
     optCatSleep: "😴 خواب و استراحت",
     optCatChores: "🧹 کارهای خانه",
+    optCatMeditation: "🧘 مدیتیشن و تمرکز",
     optSentPositive: "😊 عالی و پر انرژی",
     optSentNeutral: "😐 معمولی",
     optSentNegative: "😞 خسته یا کلافه",
@@ -158,7 +159,15 @@ const TRANSLATIONS = {
     optThemeAmethyst: "🔮 یاقوتی تاریک (Dark Amethyst)",
     optThemeOcean: "🌊 اقیانوس نیمه‌شب (Midnight Ocean)",
     optThemeForest: "🌲 جنگل زمرد (Emerald Forest)",
-    optThemeSunset: "🌅 غروب پرانرژی (Vibrant Sunset)"
+    optThemeSunset: "🌅 غروب پرانرژی (Vibrant Sunset)",
+    lblMedalsPanelTitle: "🏆 مدال‌ها و دستاوردهای امروز",
+    lblMedalsPanelDesc: "حداقل هدف‌های روزانه خود را برای کسب انگیزه تیک بزنید یا فعالیت مربوط به آن‌ها را ثبت کنید تا مدال بگیرید!",
+    lblAddMedalTitle: "تعریف مدال و عادت جدید",
+    lblAddMedalName: "عنوان عادت",
+    lblAddMedalEmoji: "ایموجی مدال",
+    lblAddMedalKey: "شناسه انگلیسی (کوتاه)",
+    lblAddMedalDesc: "توضیح هدف (زیرعنوان)",
+    btnAddMedalSave: "ثبت و ایجاد عادت"
   },
   en: {
     appTitle: "SyncRoutine",
@@ -193,6 +202,7 @@ const TRANSLATIONS = {
     optCatLeisure: "🎮 Leisure & Gaming",
     optCatSleep: "😴 Sleep & Rest",
     optCatChores: "🧹 Chores & Cleaning",
+    optCatMeditation: "🧘 Meditation & Mindfulness",
     optSentPositive: "😊 Positive & Happy",
     optSentNeutral: "😐 Neutral",
     optSentNegative: "😞 Tired / Stressed",
@@ -318,7 +328,15 @@ const TRANSLATIONS = {
     optThemeAmethyst: "🔮 Dark Amethyst Theme",
     optThemeOcean: "🌊 Midnight Ocean Theme",
     optThemeForest: "🌲 Emerald Forest Theme",
-    optThemeSunset: "🌅 Vibrant Sunset Theme"
+    optThemeSunset: "🌅 Vibrant Sunset Theme",
+    lblMedalsPanelTitle: "🏆 Today's Medals & Achievements",
+    lblMedalsPanelDesc: "Tick off your daily targets or log activity to earn medals and build consistency!",
+    lblAddMedalTitle: "Define New Habit & Medal",
+    lblAddMedalName: "Habit Title",
+    lblAddMedalEmoji: "Medal Emoji",
+    lblAddMedalKey: "English Unique ID (Short)",
+    lblAddMedalDesc: "Target Description (Sub-label)",
+    btnAddMedalSave: "Save & Create Habit"
   },
   de: {
     appTitle: "SyncRoutine",
@@ -353,6 +371,7 @@ const TRANSLATIONS = {
     optCatLeisure: "🎮 Freizeit & Spiele",
     optCatSleep: "😴 Schlaf & Erholung",
     optCatChores: "🧹 Hausarbeit & Reinigung",
+    optCatMeditation: "🧘 Meditation & Achtsamkeit",
     optSentPositive: "😊 Positiv & Glücklich",
     optSentNeutral: "😐 Neutral",
     optSentNegative: "😞 Müde / Gestresst",
@@ -479,7 +498,15 @@ const TRANSLATIONS = {
     optThemeAmethyst: "🔮 Dunkler Amethyst (Standard)",
     optThemeOcean: "🌊 Mitternachtsozean",
     optThemeForest: "🌲 Smaragdwald",
-    optThemeSunset: "🌅 Lebendiger Sonnenuntergang"
+    optThemeSunset: "🌅 Lebendiger Sonnenuntergang",
+    lblMedalsPanelTitle: "🏆 Heutige Medaillen & Erfolge",
+    lblMedalsPanelDesc: "Haken Sie Ihre täglichen Ziele ab oder protokollieren Sie Aktivitäten, um Medaillen zu erhalten!",
+    lblAddMedalTitle: "Neue Gewohnheit & Medaille definieren",
+    lblAddMedalName: "Titel der Gewohnheit",
+    lblAddMedalEmoji: "Medaillen-Emoji",
+    lblAddMedalKey: "Englische ID (kurz)",
+    lblAddMedalDesc: "Zielbeschreibung (Untertitel)",
+    btnAddMedalSave: "Gewohnheit speichern & erstellen"
   }
 };
 
@@ -2523,6 +2550,7 @@ function switchLanguage(lang) {
     'opt-cat-leisure': dict.optCatLeisure,
     'opt-cat-sleep': dict.optCatSleep,
     'opt-cat-chores': dict.optCatChores,
+    'opt-cat-meditation': dict.optCatMeditation,
     'opt-sent-pos': dict.optSentPositive,
     'opt-sent-neu': dict.optSentNeutral,
     'opt-sent-neg': dict.optSentNegative,
@@ -2540,7 +2568,15 @@ function switchLanguage(lang) {
     'opt-theme-amethyst': dict.optThemeAmethyst,
     'opt-theme-ocean': dict.optThemeOcean,
     'opt-theme-forest': dict.optThemeForest,
-    'opt-theme-sunset': dict.optThemeSunset
+    'opt-theme-sunset': dict.optThemeSunset,
+    'lbl-medals-panel-title': dict.lblMedalsPanelTitle,
+    'lbl-medals-panel-desc': dict.lblMedalsPanelDesc,
+    'lbl-add-medal-title': dict.lblAddMedalTitle,
+    'lbl-add-medal-name': dict.lblAddMedalName,
+    'lbl-add-medal-emoji': dict.lblAddMedalEmoji,
+    'lbl-add-medal-key': dict.lblAddMedalKey,
+    'lbl-add-medal-desc': dict.lblAddMedalDesc,
+    'btn-add-medal-save': dict.btnAddMedalSave
   };
 
   for (const [id, text] of Object.entries(elementsToTranslate)) {
@@ -2566,6 +2602,18 @@ function switchLanguage(lang) {
 
   const mentorVentInput = document.getElementById('mentor-vent-input');
   if (mentorVentInput) mentorVentInput.placeholder = dict.mentorVentPlaceholder;
+
+  const notesText = document.getElementById('notes');
+  if (notesText) notesText.placeholder = activeLang === 'fa' ? 'توضیحات خود را بنویسید...' : (activeLang === 'de' ? 'Beschreibung schreiben...' : 'Write notes / details...');
+
+  const micBtn = document.getElementById('mic-btn');
+  if (micBtn) micBtn.title = activeLang === 'fa' ? 'برای شروع صحبت کلیک کنید' : (activeLang === 'de' ? 'Klicken, um zu sprechen' : 'Click to start speaking');
+
+  const chatToggle = document.getElementById('chat-toggle-btn');
+  if (chatToggle) chatToggle.title = activeLang === 'fa' ? 'گفتگو با دستیار هوشمند' : (activeLang === 'de' ? 'Mit KI-Assistent chatten' : 'Chat with AI Assistant');
+
+  const chatMic = document.getElementById('chat-mic-btn');
+  if (chatMic) chatMic.title = activeLang === 'fa' ? 'ضبط صدا' : (activeLang === 'de' ? 'Sprachaufnahme' : 'Record Audio');
 
   // Update tab buttons for Tasks / Schedules
   const btnTaskTab = document.getElementById('btn-task-tab');
@@ -2596,6 +2644,7 @@ function switchLanguage(lang) {
   renderSchedules();
   renderBirthdays();
   renderCalendar();
+  renderMedals();
   
   // Re-fetch anniversaries to update memory card headers
   const today = new Date().toISOString().split('T')[0];
@@ -3264,6 +3313,7 @@ window.switchView = function(targetView) {
   });
 
   // Move panels dynamically to keep unique DOM IDs intact and prevent event listener loss
+  const statsCard = document.getElementById('tut-stats-card');
   const calendarCard = document.querySelector('.calendar-card');
   const chartsPanel = document.querySelector('.charts-panel');
   const logsPanel = document.querySelector('.logs-panel');
@@ -3275,11 +3325,16 @@ window.switchView = function(targetView) {
   const medalsPanel = document.getElementById('tut-medals-panel');
 
   if (targetView === 'home') {
+    if (statsCard) {
+      statsCard.classList.remove('hidden');
+      const viewHome = document.getElementById('view-home');
+      if (viewHome) viewHome.insertBefore(statsCard, viewHome.firstChild);
+    }
     if (calendarCard) document.getElementById('home-center-col').appendChild(calendarCard);
     if (chartsPanel) document.getElementById('home-right-col').appendChild(chartsPanel);
     if (logsPanel) document.getElementById('home-right-col').appendChild(logsPanel);
     if (tasksPanel) document.getElementById('home-left-col').appendChild(tasksPanel);
-    if (wellnessPanel) document.getElementById('home-left-col').appendChild(wellnessPanel);
+    if (wellnessPanel) document.getElementById('home-center-col').appendChild(wellnessPanel);
     if (settingsPanel) document.getElementById('home-right-col').appendChild(settingsPanel);
     if (anniversaryCard) document.getElementById('home-right-col').appendChild(anniversaryCard);
     if (medalsPanel) {
@@ -3290,23 +3345,32 @@ window.switchView = function(targetView) {
     if (calendarBody) calendarBody.style.height = '600px';
     renderCalendar();
   } else if (targetView === 'dashboard') {
+    if (statsCard) {
+      statsCard.classList.remove('hidden');
+      const viewDashboard = document.getElementById('view-dashboard');
+      if (viewDashboard) viewDashboard.appendChild(statsCard);
+    }
     if (calendarCard) document.getElementById('calendar-view-placeholder').appendChild(calendarCard);
     if (calendarBody) calendarBody.style.height = '800px';
     renderCalendar();
-  } else if (targetView === 'analytics') {
-    if (chartsPanel) document.getElementById('analytics-charts-placeholder').appendChild(chartsPanel);
-    if (logsPanel) document.getElementById('analytics-logs-placeholder').appendChild(logsPanel);
-    setTimeout(renderCharts, 50);
-  } else if (targetView === 'tasks-alarms') {
-    if (medalsPanel) document.getElementById('tasks-medals-placeholder').appendChild(medalsPanel);
-    if (tasksPanel) document.getElementById('tasks-view-placeholder').appendChild(tasksPanel);
-  } else if (targetView === 'wellness') {
-    if (wellnessPanel) document.getElementById('wellness-view-placeholder').appendChild(wellnessPanel);
-  } else if (targetView === 'settings') {
-    if (settingsPanel) document.getElementById('settings-view-placeholder').appendChild(settingsPanel);
-    if (anniversaryCard) document.getElementById('settings-view-placeholder').appendChild(anniversaryCard);
-  } else if (targetView === 'journal') {
-    renderVerticalJournalTimeline();
+  } else {
+    if (statsCard) statsCard.classList.add('hidden');
+    
+    if (targetView === 'analytics') {
+      if (chartsPanel) document.getElementById('analytics-charts-placeholder').appendChild(chartsPanel);
+      if (logsPanel) document.getElementById('analytics-logs-placeholder').appendChild(logsPanel);
+      setTimeout(renderCharts, 50);
+    } else if (targetView === 'tasks-alarms') {
+      if (medalsPanel) document.getElementById('tasks-medals-placeholder').appendChild(medalsPanel);
+      if (tasksPanel) document.getElementById('tasks-view-placeholder').appendChild(tasksPanel);
+    } else if (targetView === 'wellness') {
+      if (wellnessPanel) document.getElementById('wellness-view-placeholder').appendChild(wellnessPanel);
+    } else if (targetView === 'settings') {
+      if (settingsPanel) document.getElementById('settings-view-placeholder').appendChild(settingsPanel);
+      if (anniversaryCard) document.getElementById('settings-view-placeholder').appendChild(anniversaryCard);
+    } else if (targetView === 'journal') {
+      renderVerticalJournalTimeline();
+    }
   }
 };
 
