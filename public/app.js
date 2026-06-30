@@ -540,14 +540,14 @@ let pendingParsedResult = null;
 const alarmSound = document.getElementById('alarm-sound');
 const notifSound = document.getElementById('notif-sound');
 
-// Dynamic Island elements
-const dynamicIsland = document.getElementById('dynamic-island');
-const islandExpandedContent = document.getElementById('island-expanded-content');
-const islandCollapsedTxt = document.getElementById('island-collapsed-txt');
-const islandTitleTxt = document.getElementById('island-title-txt');
-const islandBodyTxt = document.getElementById('island-body-txt');
-const islandActionBtn = document.getElementById('island-action-btn');
-const islandDismissBtn = document.getElementById('island-dismiss-btn');
+// Dynamic Island elements (Removed)
+const dynamicIsland = null;
+const islandExpandedContent = null;
+const islandCollapsedTxt = null;
+const islandTitleTxt = null;
+const islandBodyTxt = null;
+const islandActionBtn = null;
+const islandDismissBtn = null;
 
 // Authentication elements
 const authOverlay = document.getElementById('auth-overlay');
@@ -772,8 +772,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Dynamic Island actions
-  islandActionBtn.addEventListener('click', handleIslandMicTrigger);
-  islandDismissBtn.addEventListener('click', dismissIslandPrompt);
+  if (islandActionBtn) islandActionBtn.addEventListener('click', handleIslandMicTrigger);
+  if (islandDismissBtn) islandDismissBtn.addEventListener('click', dismissIslandPrompt);
 
   // Tutorial actions
   tutNextBtn.addEventListener('click', progressTutorial);
@@ -1046,23 +1046,26 @@ function triggerAlarmNotification(schedule) {
   const dict = TRANSLATIONS[activeLang];
   alarmSound.play().catch(e => console.log("Audio play blocked by browser policy"));
   
+  if (!dynamicIsland) return;
   // Expand Dynamic Island for Alarm
   dynamicIsland.classList.add('expanded');
   dynamicIsland.classList.add('expanded-pulse');
-  islandExpandedContent.classList.remove('hidden');
+  if (islandExpandedContent) islandExpandedContent.classList.remove('hidden');
   
-  islandTitleTxt.textContent = dict.islandAlarmTitle;
-  islandBodyTxt.textContent = `${dict.islandAlarmBody}"${schedule.activity}"`;
+  if (islandTitleTxt) islandTitleTxt.textContent = dict.islandAlarmTitle;
+  if (islandBodyTxt) islandBodyTxt.textContent = `${dict.islandAlarmBody}"${schedule.activity}"`;
   
   // Custom button behavior for alarm
-  islandActionBtn.textContent = activeLang === 'fa' ? '✅ متوجه شدم' : 'OK';
-  islandActionBtn.onclick = () => {
-    collapseIsland();
-    alarmSound.pause();
-    alarmSound.currentTime = 0;
-  };
+  if (islandActionBtn) {
+    islandActionBtn.textContent = activeLang === 'fa' ? '✅ متوجه شدم' : 'OK';
+    islandActionBtn.onclick = () => {
+      collapseIsland();
+      alarmSound.pause();
+      alarmSound.currentTime = 0;
+    };
+  }
   
-  islandDismissBtn.classList.add('hidden');
+  if (islandDismissBtn) islandDismissBtn.classList.add('hidden');
 }
 
 // Trigger 2-Hour Routine prompt
@@ -1070,23 +1073,27 @@ function triggerIslandPrompt() {
   const dict = TRANSLATIONS[activeLang];
   notifSound.play().catch(e => console.log("Audio play blocked by browser policy"));
   
+  if (!dynamicIsland) return;
   dynamicIsland.classList.add('expanded');
-  islandExpandedContent.classList.remove('hidden');
+  if (islandExpandedContent) islandExpandedContent.classList.remove('hidden');
   
-  islandTitleTxt.textContent = dict.islandPromptTitle;
-  islandBodyTxt.textContent = dict.islandPromptBody;
-  islandActionBtn.textContent = dict.islandBtnStart;
-  
-  // Setup button actions
-  islandActionBtn.onclick = handleIslandMicTrigger;
-  islandDismissBtn.classList.remove('hidden');
-  islandDismissBtn.textContent = dict.islandBtnLater;
+  if (islandTitleTxt) islandTitleTxt.textContent = dict.islandPromptTitle;
+  if (islandBodyTxt) islandBodyTxt.textContent = dict.islandPromptBody;
+  if (islandActionBtn) {
+    islandActionBtn.textContent = dict.islandBtnStart;
+    islandActionBtn.onclick = handleIslandMicTrigger;
+  }
+  if (islandDismissBtn) {
+    islandDismissBtn.classList.remove('hidden');
+    islandDismissBtn.textContent = dict.islandBtnLater;
+  }
 }
 
 function handleIslandMicTrigger() {
   collapseIsland();
   // Focus logger panel, click voice tab, start recording
-  document.querySelector('.tab-btn[data-tab="voice"]').click();
+  const voiceTab = document.querySelector('.tab-btn[data-tab="voice"]');
+  if (voiceTab) voiceTab.click();
   toggleRecording();
 }
 
@@ -1098,12 +1105,13 @@ function dismissIslandPrompt() {
 }
 
 function collapseIsland() {
+  if (!dynamicIsland) return;
   dynamicIsland.classList.remove('expanded');
   dynamicIsland.classList.remove('expanded-pulse');
-  islandExpandedContent.classList.add('hidden');
+  if (islandExpandedContent) islandExpandedContent.classList.add('hidden');
   
   // Reset buttons
-  islandActionBtn.onclick = handleIslandMicTrigger;
+  if (islandActionBtn) islandActionBtn.onclick = handleIslandMicTrigger;
 }
 
 // Interactive Onboarding Tutorial Steps
