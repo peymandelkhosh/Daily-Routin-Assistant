@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" id="app-html">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SyncRoutine | دستیار روتین و بهره‌وری هوشمند</title>
+  
+  <!-- Fonts (Inter for UI, Vazirmatn for Persian text) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+</head>
+<body>
+  <!-- Ambient Neon Glows -->
+  <div class="glow-bg"></div>
+
+  <!-- Apple-like Dynamic Island Notification Widget -->
+  <div class="dynamic-island-container">
+    <div class="dynamic-island" id="dynamic-island">
+      <div class="island-collapsed-content">
+        <span class="island-status-dot"></span>
+        <span class="island-collapsed-text" id="island-collapsed-txt">SyncRoutine فعال است</span>
+      </div>
+      <div class="island-expanded-content hidden" id="island-expanded-content">
+        <div class="island-header">
+          <div class="island-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+          </div>
+          <span class="island-title" id="island-title-txt">ارزیابی روتین دو ساعته</span>
+        </div>
+        <p class="island-body" id="island-body-txt">در ۲ ساعت گذشته چه کاری انجام دادید؟ همین حالا بگویید تا ثبت کنم.</p>
+        <div class="island-actions">
+          <button class="btn-primary" id="island-action-btn">🎙 شروع ثبت صوتی</button>
+          <button class="btn-secondary" id="island-dismiss-btn">بعداً</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Signup / Login Overlay Portal -->
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-logo-area">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </div>
+        <h2>SyncRoutine</h2>
+      </div>
+      
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="btn-auth-login-tab">ورود</button>
+        <button class="auth-tab" id="btn-auth-signup-tab">ثبت‌نام</button>
+      </div>
+
+      <form id="auth-form" class="auth-form">
+        <div class="form-group">
+          <label for="auth-username" id="lbl-auth-username">نام کاربری</label>
+          <input type="text" id="auth-username" required placeholder="نام کاربری خود را وارد کنید...">
+        </div>
+        <div class="form-group">
+          <label for="auth-password" id="lbl-auth-password">کلمه عبور</label>
+          <input type="password" id="auth-password" required placeholder="کلمه عبور خود را وارد کنید...">
+        </div>
+        <button type="submit" class="btn-primary" id="auth-submit-btn">ورود به حساب کاربری</button>
+      </form>
+      <div class="auth-error hidden" id="auth-error-msg"></div>
+    </div>
+  </div>
+
+  <!-- Onboarding Interactive Tutorial Overlay -->
+  <div class="tutorial-overlay hidden" id="tutorial-overlay">
+    <div class="tutorial-card">
+      <div class="tutorial-progress"><span id="tut-step-num">1</span> / 4</div>
+      <h3 class="tutorial-title" id="tut-title">خوش آمدید!</h3>
+      <p class="tutorial-body" id="tut-body">بیایید در چند مرحله کوتاه با نحوه کار با دستیار هوشمند خود آشنا شویم.</p>
+      <div class="tutorial-actions">
+        <button class="btn-secondary" id="tut-skip-btn">رد کردن راهنما</button>
+        <button class="btn-primary" id="tut-next-btn">بعدی ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Container -->
+  <div class="main-app-content hidden" id="main-app-content" style="display: flex; min-height: 100vh; width: 100%; position: relative;">
+    
+    <!-- Left Sidebar Menu -->
+    <aside class="app-sidebar" id="app-sidebar" style="width: 250px; background: rgba(15, 23, 42, 0.85); border-right: 1px solid var(--card-border); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s, transform 0.3s; z-index: 100; flex-shrink: 0; box-shadow: 5px 0 25px rgba(0,0,0,0.3);">
+      <div style="padding: 25px; display: flex; flex-direction: column; gap: 30px;">
+        <div class="logo-area" style="display: flex; align-items: center; gap: 12px;">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </div>
+          <h2 style="font-size: 1.4rem; font-weight: 800; background: linear-gradient(to left, #ffffff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SyncRoutine</h2>
+        </div>
+
+        <nav style="display: flex; flex-direction: column; gap: 8px;">
+          <a href="#" class="sidebar-link active" data-view="home" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-main); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+            <span style="font-size: 1.1rem;">🏠</span>
+            <span class="nav-text" id="side-nav-home">صفحه اصلی</span>
+          </a>
+          <a href="#" class="sidebar-link" data-view="dashboard" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+            <span style="font-size: 1.1rem;">💼</span>
+            <span class="nav-text" id="side-nav-dash">داشبورد و تقویم</span>
+          </a>
+          <a href="#" class="sidebar-link" data-view="analytics" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+            <span style="font-size: 1.1rem;">📊</span>
+            <span class="nav-text" id="side-nav-analytics">نمودارها و گزارشات</span>
+          </a>
+          <a href="#" class="sidebar-link" data-view="tasks-alarms" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+            <span style="font-size: 1.1rem;">🎯</span>
+            <span class="nav-text" id="side-nav-tasks">تسک‌ها و آلارم‌ها</span>
+          </a>
+          <a href="#" class="sidebar-link" data-view="wellness" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+            <span style="font-size: 1.1rem;">💖</span>
+            <span class="nav-text" id="side-nav-wellness">دستیار سلامت روان</span>
+          </a>
+          <a href="#" class="sidebar-link" data-view="journal" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+            <span style="font-size: 1.1rem;">📓</span>
+            <span class="nav-text" id="side-nav-journal">دفترچه یادداشت</span>
+          </a>
+          <a href="#" class="sidebar-link" data-view="settings" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+            <span style="font-size: 1.1rem;">⚙️</span>
+            <span class="nav-text" id="side-nav-settings">تنظیمات تولدها</span>
+          </a>
+        </nav>
+      </div>
+
+      <div style="padding: 25px; border-top: 1px solid var(--card-border);">
+        <button class="btn-secondary" id="logout-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: 10px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+          <span id="lbl-logout-btn">خروج از حساب</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Right Main Content Wrapper -->
+    <div class="main-content-wrapper" style="flex: 1; min-width: 0; padding: 30px; display: flex; flex-direction: column; gap: 25px; height: 100vh; overflow-y: auto; position: relative;">
+      
+      <!-- Header -->
+      <header class="app-header" style="margin-bottom: 5px;">
+        <div class="header-top-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+          <div class="logo-area" style="display: flex; align-items: center; gap: 12px;">
+            <!-- Hamburger button for mobile toggling -->
+            <button id="sidebar-toggle-btn" style="background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-right: 5px; outline: none; padding: 4px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+            </button>
+            <h1 style="font-family: 'Inter', 'Vazirmatn', sans-serif; font-size: 2.2rem; font-weight: 800; background: linear-gradient(to left, #ffffff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="main-header-title">SyncRoutine</h1>
+          </div>
+          
+          <div class="header-actions" style="display: flex; align-items: center; gap: 10px;">
+            <select id="lang-select" class="lang-select">
+              <option value="fa" selected>🇮🇷 فارسی</option>
+              <option value="en">🇺🇸 English</option>
+              <option value="de">🇩🇪 Deutsch</option>
+            </select>
+          </div>
+        </div>
+        <p class="tagline" id="app-tagline" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">دستیار شخصی هوشمند برای پیگیری روتین، بهره‌وری و روزمره‌نویسی صوتی</p>
+      </header>
+
+      <!-- Stats Dashboard Row (Globally Visible on top of views) -->
+      <section class="stats-grid" id="tut-stats-card">
+        <div class="stat-card">
+          <div class="stat-icon duration-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label" id="lbl-stat-duration">کل زمان پیگیری‌شده</span>
+            <h2 id="stat-total-hours">۰ ساعت</h2>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon productivity-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/><path d="m5 7 3 5-3 5"/><path d="m19 7-3 5 3 5"/></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label" id="lbl-stat-productivity">میانگین بهره‌وری امروز</span>
+            <h2 id="stat-avg-prod">۰ / ۱۰</h2>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon journal-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label" id="lbl-stat-journals">کل یادداشت‌های دفترچه</span>
+            <h2 id="stat-total-journals">۰ یادداشت</h2>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 0: Home View (3-Column View with everything) -->
+      <div class="app-view" id="view-home">
+        <div class="main-workspace" style="display: grid; grid-template-columns: 1.1fr 1.8fr 1.1fr; gap: 25px; align-items: start;">
+          
+          <!-- Column 1 (Left): Input Loggers, Tasks, mental wellness advisor -->
+          <div class="workspace-column left-column" id="home-left-col" style="display: flex; flex-direction: column; gap: 25px;">
+            <!-- Medals & Habits Panel -->
+            <section class="workspace-card medals-panel" id="tut-medals-panel">
+              <h3 class="card-title" id="lbl-medals-panel-title" style="border-right-color: var(--accent-amber);">🏆 مدال‌ها و دستاوردهای امروز</h3>
+              <p class="ai-planner-desc" id="lbl-medals-panel-desc">حداقل هدف‌های روزانه خود را برای کسب انگیزه تیک بزنید یا فعالیت مربوط به آن‌ها را ثبت کنید تا مدال بگیرید!</p>
+              
+              <div class="medals-container" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+                <!-- Reading Medal -->
+                <div class="medal-row" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 12px;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="checkbox" class="medal-checkbox" id="chk-medal-reading" data-habit="reading" style="width: 18px; height: 18px; cursor: pointer;">
+                    <div class="medal-info">
+                      <div style="font-weight: 700; font-size: 0.9rem;" id="lbl-habit-reading">📖 مطالعه کتاب (حداقل ۱ صفحه)</div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);" id="lbl-streak-reading">عادت روزانه</div>
+                    </div>
+                  </div>
+                  <div class="medal-badge inactive" id="badge-medal-reading" style="font-size: 1.8rem; filter: grayscale(1); transition: all 0.3s;" title="مدال مطالعه کتاب">📖</div>
+                </div>
+
+                <!-- Meditation Medal -->
+                <div class="medal-row" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 12px;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="checkbox" class="medal-checkbox" id="chk-medal-meditation" data-habit="meditation" style="width: 18px; height: 18px; cursor: pointer;">
+                    <div class="medal-info">
+                      <div style="font-weight: 700; font-size: 0.9rem;" id="lbl-habit-meditation">🧘 مدیتیشن و تمرکز (حداقل ۱ دقیقه)</div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);" id="lbl-streak-meditation">عادت روزانه</div>
+                    </div>
+                  </div>
+                  <div class="medal-badge inactive" id="badge-medal-meditation" style="font-size: 1.8rem; filter: grayscale(1); transition: all 0.3s;" title="مدال تمرکز و مدیتیشن">🧘</div>
+                </div>
+
+                <!-- Exercise Medal -->
+                <div class="medal-row" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 12px;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <input type="checkbox" class="medal-checkbox" id="chk-medal-exercise" data-habit="exercise" style="width: 18px; height: 18px; cursor: pointer;">
+                    <div class="medal-info">
+                      <div style="font-weight: 700; font-size: 0.9rem;" id="lbl-habit-exercise">🏃 ورزش و تندرستی (بدون محدودیت زمان)</div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted);" id="lbl-streak-exercise">عادت روزانه</div>
+                    </div>
+                  </div>
+                  <div class="medal-badge inactive" id="badge-medal-exercise" style="font-size: 1.8rem; filter: grayscale(1); transition: all 0.3s;" title="مدال ورزش و سلامتی">🏃</div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Logger panel -->
+            <section class="workspace-card logger-panel" id="tut-logger-panel">
+              <div class="tabs-row">
+                <button class="tab-btn active" data-tab="voice" id="tab-voice-title">🎙 ثبت صوتی</button>
+                <button class="tab-btn" data-tab="manual" id="tab-manual-title">✏️ ثبت دستی</button>
+              </div>
+
+              <!-- Voice Logger Area -->
+              <div class="tab-content voice-content" id="voice-tab">
+                <div class="voice-mic-container">
+                  <button class="mic-btn" id="mic-btn" title="برای شروع صحبت کلیک کنید">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  </button>
+                  <div class="mic-pulse-rings">
+                    <span class="ring ring-1"></span>
+                    <span class="ring ring-2"></span>
+                  </div>
+                </div>
+                <p class="mic-status-text" id="mic-status">برای صحبت کردن روی میکروفون کلیک کنید</p>
+
+                <div class="transcript-box hidden" id="transcript-box">
+                  <h4 id="lbl-transcript-header">متن شنیده شده:</h4>
+                  <p id="transcript-text"></p>
+                </div>
+
+                <!-- AI Parsing Pending Card -->
+                <div class="ai-result-card hidden" id="ai-result-card">
+                  <div class="ai-card-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/></svg>
+                    <span id="lbl-ai-header">تحلیل هوشمند پیام شما:</span>
+                  </div>
+                  <div id="ai-parsed-details"></div>
+                  <div class="ai-card-actions">
+                    <button class="btn-primary" id="ai-confirm-btn">✅ ثبت اطلاعات</button>
+                    <button class="btn-secondary" id="ai-cancel-btn">❌ انصراف</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Manual Logger Area -->
+              <div class="tab-content manual-content hidden" id="manual-tab">
+                <form id="manual-form" class="activity-form">
+                  <div class="form-group">
+                    <label for="manual-type" id="lbl-man-type">نوع داده</label>
+                    <select id="manual-type" required>
+                      <option value="activity" id="opt-man-act">💼 ثبت فعالیت روتین</option>
+                      <option value="journal" id="opt-man-jou">📖 یادداشت روزانه</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="manual-date" id="lbl-man-date">تاریخ</label>
+                    <input type="date" id="manual-date" required>
+                  </div>
+
+                  <!-- Activity Fields -->
+                  <div id="manual-activity-fields">
+                    <div class="form-group">
+                      <label for="activity-cat" id="lbl-man-cat">دسته فعالیت</label>
+                      <select id="activity-cat">
+                        <option value="Work" id="opt-cat-work">💼 کار و پروژه</option>
+                        <option value="Study" id="opt-cat-study">📚 درس و مطالعه</option>
+                        <option value="Exercise" id="opt-cat-exercise">🏃 ورزش و باشگاه</option>
+                        <option value="Meditation" id="opt-cat-meditation">🧘 مدیتیشن و تمرکز</option>
+                        <option value="Leisure" id="opt-cat-leisure">🎮 تفریح و سرگرمی</option>
+                        <option value="Sleep" id="opt-cat-sleep">😴 خواب و استراحت</option>
+                        <option value="Chores" id="opt-cat-chores">🧹 کارهای خانه</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group-row">
+                      <div class="form-group">
+                        <label for="start-time" id="lbl-man-start-time">ساعت شروع</label>
+                        <input type="time" id="start-time">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="end-time" id="lbl-man-end-time">ساعت پایان</label>
+                        <input type="time" id="end-time">
+                      </div>
+                    </div>
+
+                    <div class="form-group-row">
+                      <div class="form-group">
+                        <label for="duration" id="lbl-man-duration">مدت زمان (ساعت)</label>
+                        <input type="number" id="duration" min="0.1" max="24" step="0.1" placeholder="e.g. 2.5">
+                      </div>
+
+                      <div class="form-group">
+                        <label for="productivity" id="lbl-man-productivity">بهره‌وری (۱ - ۱۰)</label>
+                        <input type="range" id="productivity" min="1" max="10" value="7" class="slider">
+                        <div class="slider-val"><span id="prod-val">۷</span> / ۱۰</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Journal Fields -->
+                  <div id="manual-journal-fields" class="hidden">
+                    <div class="form-group">
+                      <label for="journal-sentiment" id="lbl-man-sentiment">حس و حال کلی</label>
+                      <select id="journal-sentiment">
+                        <option value="positive" id="opt-sent-pos">😊 عالی و پر انرژی</option>
+                        <option value="neutral" id="opt-sent-neu">😐 معمولی</option>
+                        <option value="negative" id="opt-sent-neg">😞 خسته یا کلافه</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="notes" id="lbl-man-notes">یادداشت / توضیحات</label>
+                    <textarea id="notes" rows="3" placeholder="توضیحات خود را بنویسید..."></textarea>
+                  </div>
+
+                  <button type="submit" class="btn-primary" id="btn-man-save">ذخیره اطلاعات</button>
+                </form>
+              </div>
+            </section>
+
+            <!-- Follow-up Tasks & Alarm Schedules -->
+            <section class="workspace-card task-coach-panel" id="tut-tasks-panel">
+              <div class="tabs-row bottom-logs-tabs">
+                <button class="tab-btn active" id="btn-task-tab" onclick="switchTaskPanel('tasks')">🎯 تسک‌های معوقه</button>
+                <button class="tab-btn" id="btn-schedule-tab" onclick="switchTaskPanel('schedules')">⏰ برنامه زمانی و آلارم</button>
+              </div>
+
+              <!-- Tasks Sub-panel -->
+              <div id="panel-tasks-list">
+                <div class="task-input-row">
+                  <input type="text" id="new-task-title" placeholder="کار جدید (مثال: پایان‌نامه...)">
+                  <input type="date" id="new-task-due">
+                  <div class="prep-check">
+                    <input type="checkbox" id="new-task-prep">
+                    <label for="new-task-prep" id="lbl-prep-required">پیش‌نیاز</label>
+                  </div>
+                  <button class="btn-primary" id="add-task-btn" style="padding: 8px 14px;">➕</button>
+                </div>
+                <div class="task-list-container" style="max-height: 250px; overflow-y: auto; margin-top: 15px;">
+                  <ul class="task-list" id="task-list"></ul>
+                </div>
+              </div>
+
+              <!-- Schedule Sub-panel -->
+              <div id="panel-schedules-list" class="hidden">
+                <div class="task-input-row">
+                  <input type="text" id="new-schedule-activity" placeholder="فعالیت (مثال: جلسه کاری...)">
+                  <input type="text" id="new-schedule-time" placeholder="ساعت (مثال: 09:00)">
+                  <button class="btn-primary" id="add-schedule-btn" style="padding: 10px 16px;">ثبت برنامه</button>
+                </div>
+                <div class="task-list-container" style="max-height: 250px; overflow-y: auto; margin-top: 15px;">
+                  <ul class="task-list" id="schedule-list"></ul>
+                </div>
+              </div>
+            </section>
+
+            <!-- AI Wellness Mentor Panel -->
+            <section class="workspace-card wellness-mentor-panel" id="wellness-mentor-section">
+              <h3 class="card-title" id="lbl-wellness-mentor-title" style="border-right-color: var(--accent-pink);">💖 منتور سلامت روان (AI Advisor)</h3>
+              <p class="ai-planner-desc" id="lbl-wellness-mentor-desc">می‌توانید با دستیار سلامت خود درد و دل کنید. او با خواندن روتین‌ها به شما بازخوردهای روانشناسی ارائه می‌دهد.</p>
+              
+              <div class="mentor-input-area" style="margin-top: 15px;">
+                <textarea id="mentor-vent-input" rows="3" style="width: 100%; padding: 10px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); font-family: inherit; resize: vertical;" placeholder="امروز چطورید؟ احساسات خود را بنویسید..."></textarea>
+                <button class="btn-primary" id="btn-mentor-consult" style="margin-top: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span id="btn-mentor-consult-text">💬 مشاوره با منتور</span>
+                </button>
+              </div>
+              <div class="ai-suggestion-box hidden" id="mentor-advice-box" style="margin-top: 15px; border-top: 1px solid var(--card-border); padding-top: 15px; font-size: 0.9rem; line-height: 1.6; max-height: 250px; overflow-y: auto;"></div>
+            </section>
+          </div>
+
+          <!-- Column 2 (Center): Calendar -->
+          <div class="workspace-column center-column" id="home-center-col" style="display: flex; flex-direction: column; gap: 25px;">
+            <section class="workspace-card calendar-card" style="position: relative;">
+              <!-- Calendar Header -->
+              <div class="calendar-header-row">
+                <div class="calendar-nav-group">
+                  <button class="btn-secondary btn-sm" id="cal-today-btn" style="padding: 6px 12px; font-size: 0.75rem;">Today</button>
+                  <button class="btn-secondary btn-sm" id="cal-prev-btn" style="padding: 6px 10px; font-size: 0.75rem;">◀</button>
+                  <button class="btn-secondary btn-sm" id="cal-next-btn" style="padding: 6px 10px; font-size: 0.75rem;">▶</button>
+                </div>
+                <h3 class="calendar-current-date" id="cal-current-date-txt" style="font-size: 1rem; font-weight: 700; margin: 0;">Monday, Jun 29</h3>
+                <div class="calendar-view-group" style="display: flex; gap: 4px; align-items: center;">
+                  <button class="btn-toggle active btn-sm" data-cal-view="day" id="cal-view-day-btn" style="padding: 6px 10px; font-size: 0.75rem;">Day</button>
+                  <button class="btn-toggle btn-sm" data-cal-view="week" id="cal-view-week-btn" style="padding: 6px 10px; font-size: 0.75rem;">Week</button>
+                  <button class="btn-toggle btn-sm" data-cal-view="month" id="cal-view-month-btn" style="padding: 6px 10px; font-size: 0.75rem;">Month</button>
+                  <button class="cal-add-btn" id="cal-add-slot-btn" title="Add activity slot" style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); border: none; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 5px; box-shadow: 0 0 10px var(--primary-glow); transition: transform 0.2s;">+</button>
+                </div>
+              </div>
+
+              <!-- Calendar Body Container -->
+              <div class="calendar-body" style="margin-top: 15px; border: 1px solid var(--card-border); border-radius: 12px; background: rgba(15, 23, 42, 0.4); height: 600px; overflow: hidden; position: relative;">
+                <!-- Day View -->
+                <div id="cal-day-view-container" class="cal-view-container" style="height: 100%; overflow-y: auto; position: relative;">
+                  <div class="cal-hourly-grid" style="position: relative; width: 100%;">
+                    <!-- Rendered dynamically via JS -->
+                  </div>
+                </div>
+
+                <!-- Week View -->
+                <div id="cal-week-view-container" class="cal-view-container hidden" style="height: 100%; overflow-y: auto; position: relative;">
+                  <div class="cal-week-grid" style="position: relative; width: 100%; height: 100%;">
+                    <!-- Rendered dynamically via JS -->
+                  </div>
+                </div>
+
+                <!-- Month View -->
+                <div id="cal-month-view-container" class="cal-view-container hidden" style="height: 100%; overflow-y: auto;">
+                  <div class="cal-month-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px; min-height: 100%;">
+                    <!-- Rendered dynamically via JS -->
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Column 3 (Right): Planner, Charts, Birthday, Logs -->
+          <div class="workspace-column right-column" id="home-right-col" style="display: flex; flex-direction: column; gap: 25px;">
+            <!-- AI Daily Planner Panel -->
+            <section class="workspace-card ai-planner-panel" id="tut-ai-planner">
+              <h3 class="card-title" id="lbl-ai-planner-title" style="border-right-color: var(--accent-purple);">🤖 برنامه‌ریز هوشمند فردا (AI)</h3>
+              <p class="ai-planner-desc" id="lbl-ai-planner-desc">هوش مصنوعی برای فردا برنامه پیشنهادی می‌سازد.</p>
+              <div class="ai-planner-actions">
+                <button class="btn-primary" id="generate-routine-btn" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/></svg>
+                  <span id="btn-generate-ai-plan">دریافت برنامه پیشنهادی فردا</span>
+                </button>
+              </div>
+              <div class="ai-suggestion-box hidden" id="ai-suggestion-box" style="margin-top: 15px; max-height: 200px; overflow-y: auto; border: 1px solid var(--card-border); padding: 10px; border-radius: 8px; background: rgba(15,23,42,0.4);"></div>
+            </section>
+
+            <!-- Chart Visualization -->
+            <section class="workspace-card charts-panel">
+              <h3 class="card-title" id="lbl-charts-title">📊 نمودارها و تحلیل‌ها</h3>
+              <div class="chart-toggle-row">
+                <button class="btn-toggle active" data-chart="time" id="btn-chart-time">سهم فعالیت‌ها</button>
+                <button class="btn-toggle" data-chart="productivity" id="btn-chart-productivity">روند بهره‌وری</button>
+              </div>
+              <div class="chart-wrapper" style="height: 180px;">
+                <canvas id="timeChart"></canvas>
+                <canvas id="productivityChart" class="hidden"></canvas>
+              </div>
+            </section>
+
+            <!-- Anniversary Card -->
+            <section class="workspace-card anniversary-card hidden" id="anniversary-card-section">
+              <h3 class="card-title" id="lbl-anniversary-title" style="border-right-color: var(--accent-amber);">📅 در همین تاریخ در سال‌های گذشته</h3>
+              <div id="anniversary-content-box" style="max-height: 120px; overflow-y: auto;"></div>
+            </section>
+
+            <!-- Settings (Birthdays Config) -->
+            <section class="workspace-card settings-panel">
+              <h3 class="card-title" id="lbl-settings-title" style="border-right-color: var(--accent-green);">⚙️ تنظیمات و تاریخ تولدها</h3>
+              <div class="birthday-config-row">
+                <input type="text" id="bday-name" placeholder="نام مخاطب">
+                <input type="text" id="bday-date" placeholder="MM-DD">
+                <button class="btn-primary" id="add-bday-btn" style="padding: 10px 16px;">ثبت تولد</button>
+              </div>
+              <div class="birthdays-list-container" style="max-height: 120px; overflow-y: auto; margin-top: 10px;">
+                <ul class="bday-list" id="bday-list"></ul>
+              </div>
+              <div class="settings-actions-row" style="margin-top: 10px; border-top: 1px solid var(--card-border); padding-top: 10px;">
+                <button class="btn-secondary" id="seed-data-btn" style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 10px 16px; width: 100%; justify-content: center;">
+                  📊 <span id="lbl-seed-data-btn">تولید اطلاعات نمونه (ژوئن ۲۰۲۶)</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- Recent Logs & Journals -->
+            <section class="workspace-card logs-panel">
+              <div class="tabs-row bottom-logs-tabs">
+                <button class="log-tab-btn active" data-log="activities" id="btn-tab-activities">جدول فعالیت‌ها</button>
+                <button class="log-tab-btn" data-log="journal" id="btn-tab-journal">دفترچه خاطرات</button>
+              </div>
+              <div class="log-content-area" id="activities-log-content">
+                <div class="table-container" style="max-height: 150px; overflow-y: auto;">
+                  <table class="logs-table">
+                    <thead>
+                      <tr>
+                        <th id="th-date">تاریخ</th>
+                        <th id="th-activity">فعالیت</th>
+                        <th id="th-duration">مدت زمان</th>
+                        <th id="th-productivity">بهره‌وری</th>
+                        <th id="th-notes">توضیحات</th>
+                        <th id="th-action">عملیات</th>
+                      </tr>
+                    </thead>
+                    <tbody id="logs-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="log-content-area hidden" id="journal-log-content">
+                <div class="timeline" id="journal-timeline" style="max-height: 150px; overflow-y: auto;"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 1: Dashboard View (Calendar only placeholder) -->
+      <div class="app-view hidden" id="view-dashboard" style="display: flex; flex-direction: column; gap: 25px;">
+        <div id="calendar-view-placeholder" style="width: 100%;"></div>
+      </div>
+
+      <!-- View 2: Analytics & Reports View (Charts + logs table widescreen placeholders) -->
+      <div class="app-view hidden" id="view-analytics" style="display: flex; flex-direction: column; gap: 25px;">
+        <div class="analytics-layout-grid" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 25px; align-items: start;">
+          <div id="analytics-charts-placeholder" style="width: 100%;"></div>
+          <div id="analytics-logs-placeholder" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- View 3: Tasks & Alarms View (Tasks panel placeholder) -->
+      <div class="app-view hidden" id="view-tasks-alarms" style="display: flex; flex-direction: column; gap: 25px; align-items: center;">
+        <div id="tasks-view-placeholder" style="max-width: 800px; width: 100%;"></div>
+      </div>
+
+      <!-- View 4: Mental Wellness View (Wellness mentor panel placeholder) -->
+      <div class="app-view hidden" id="view-wellness" style="display: flex; flex-direction: column; gap: 25px; align-items: center;">
+        <div id="wellness-view-placeholder" style="max-width: 800px; width: 100%;"></div>
+      </div>
+
+      <!-- View 5: Settings View (Settings panel placeholder) -->
+      <div class="app-view hidden" id="view-settings" style="display: flex; flex-direction: column; gap: 25px; align-items: center;">
+        <div id="settings-view-placeholder" style="max-width: 800px; width: 100%; display: flex; flex-direction: column; gap: 25px;"></div>
+      </div>
+
+      <!-- View 6: Daily Journal View -->
+      <div class="app-view hidden" id="view-journal" style="display: flex; flex-direction: column; gap: 25px;">
+        <div class="journal-layout-grid" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; align-items: start;">
+          
+          <!-- Journal Editor (Left Column) -->
+          <div class="workspace-column journal-editor-column" style="display: flex; flex-direction: column; gap: 25px;">
+            <section class="workspace-card journal-writer-panel" style="position: relative;">
+              <h3 class="card-title" id="lbl-journal-writer-title" style="border-right-color: var(--accent-indigo);">📓 ثبت یادداشت و حس‌وحال روزانه</h3>
+              <p class="ai-planner-desc" id="lbl-journal-writer-desc">یادداشت امروز خود را بنویسید یا ضبط کنید تا هوش مصنوعی حس‌وحال شما را تحلیل کند.</p>
+              
+              <form id="journal-writer-form" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+                <div class="form-group">
+                  <label for="journal-writer-date" id="lbl-journal-write-date">تاریخ</label>
+                  <input type="date" id="journal-writer-date" required style="width: 100%;">
+                </div>
+                
+                <div class="form-group" style="position: relative;">
+                  <label for="journal-writer-content" id="lbl-journal-write-content">متن یادداشت</label>
+                  <textarea id="journal-writer-content" rows="6" placeholder="امروز چطور بود؟ چه کارهایی انجام دادید و چه احساسی دارید..." required style="width: 100%; padding-right: 45px;"></textarea>
+                  
+                  <!-- Mic button inside textarea -->
+                  <button type="button" class="mic-btn" id="journal-mic-btn" style="position: absolute; bottom: 15px; right: 15px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;" title="ضبط صوتی یادداشت">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  </button>
+                </div>
+                
+                <button type="submit" class="btn-primary" id="btn-journal-writer-save" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  💾 <span id="lbl-journal-save-btn">ثبت خاطره روزانه</span>
+                </button>
+              </form>
+            </section>
+
+            <!-- Detected Mood Sticker -->
+            <section class="workspace-card mood-sticker-panel hidden" id="mood-sticker-panel">
+              <h3 class="card-title" id="lbl-mood-sticker-title" style="border-right-color: var(--accent-amber); font-size: 0.95rem;">🎭 تحلیل حس‌وحال شما توسط هوش مصنوعی</h3>
+              
+              <div style="display: flex; align-items: center; gap: 20px; margin-top: 15px;">
+                <div class="mood-sticker-large" id="mood-sticker-emoji" style="font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); animation: pulse 2s infinite;">🧘</div>
+                <div class="mood-sticker-details">
+                  <div style="font-size: 1.2rem; font-weight: 800;" id="mood-sticker-label">آرام (Peaceful)</div>
+                  <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;" id="mood-sticker-insight">ممنون که خاطره امروز خود را ثبت کردید.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Journal History (Right Column) -->
+          <div class="workspace-column journal-history-column" style="display: flex; flex-direction: column; gap: 25px;">
+            <section class="workspace-card journal-history-panel">
+              <h3 class="card-title" id="lbl-journal-history-title" style="border-right-color: var(--accent-green);">📜 تاریخچه یادداشت‌ها</h3>
+              <div class="journal-timeline-vertical" id="journal-timeline-vertical" style="max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                <!-- Dynamically loaded timeline of past journals -->
+              </div>
+            </section>
+          </div>
+          
+        </div>
+      </div>
+
+      <!-- Floating Chat Assistant Widget -->
+      <div class="floating-chat-container" id="floating-chat-container">
+        <button class="chat-toggle-btn" id="chat-toggle-btn" title="گفتگو با دستیار هوشمند">
+          <span class="chat-icon">💬</span>
+        </button>
+        
+        <div class="chat-window hidden" id="chat-window">
+          <div class="chat-header">
+            <div class="chat-header-title">
+              <span>🤖 دستیار هوشمند SyncRoutine</span>
+            </div>
+            <button class="chat-close-btn" id="chat-window-close-btn">×</button>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg system">
+              سلام! من دستیار هوشمند شما هستم. چطور می‌توانم کمک‌تان کنم؟
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <button class="chat-mic-btn" id="chat-mic-btn" title="ضبط صدا">
+              🎙
+            </button>
+            <input type="text" id="chat-input" placeholder="چیزی بنویسید یا ضبط کنید...">
+            <button class="chat-send-btn" id="chat-send-btn">
+              ➔
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- App Footer inside main content area -->
+      <footer class="app-footer" style="margin-top: auto; border-top: 1px solid var(--card-border); padding-top: 15px; text-align: center;">
+        <p id="app-footer-text">© ۲۰۲۶ SyncRoutine. طراح: پیمان دلخوش</p>
+      </footer>
+    </div>
+  </div>
+    <!-- Modal: Add Activity Slot -->
+    <div class="modal-overlay hidden" id="cal-add-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px);">
+      <div class="modal-card" style="background: rgba(17, 24, 39, 0.95); border: 1px solid var(--card-border); border-radius: 16px; padding: 25px; width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+          <h3 id="lbl-add-modal-title" style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main);">افزودن فعالیت جدید به تقویم</h3>
+          <button class="modal-close-btn" id="cal-add-modal-close-btn" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;">×</button>
+        </div>
+        <form id="cal-add-form" class="activity-form" style="margin-top: 15px;">
+          <div class="form-group">
+            <label for="cal-add-cat" id="lbl-add-modal-cat">دسته فعالیت</label>
+            <select id="cal-add-cat" required>
+              <option value="Work">💼 کار و پروژه</option>
+              <option value="Study">📚 درس و مطالعه</option>
+              <option value="Exercise">🏃 ورزش و باشگاه</option>
+              <option value="Meditation">🧘 مدیتیشن و تمرکز</option>
+              <option value="Leisure">🎮 تفریح و سرگرمی</option>
+              <option value="Sleep">😴 خواب و استراحت</option>
+              <option value="Chores">🧹 کارهای خانه</option>
+            </select>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="cal-add-date" id="lbl-add-modal-date">تاریخ</label>
+              <input type="date" id="cal-add-date" required>
+            </div>
+            <div class="form-group">
+              <label for="cal-add-productivity" id="lbl-add-modal-productivity">بهره‌وری (۱ - ۱۰)</label>
+              <input type="number" id="cal-add-productivity" min="1" max="10" value="7" required>
+            </div>
+          </div>
+          <div class="form-group-row" style="margin-top: 10px;">
+            <div class="form-group">
+              <label for="cal-add-start-time" id="lbl-add-modal-start">ساعت شروع</label>
+              <input type="time" id="cal-add-start-time" required>
+            </div>
+            <div class="form-group">
+              <label for="cal-add-end-time" id="lbl-add-modal-end">ساعت پایان</label>
+              <input type="time" id="cal-add-end-time" required>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 10px;">
+            <label for="cal-add-notes" id="lbl-add-modal-notes">یادداشت / توضیحات</label>
+            <textarea id="cal-add-notes" rows="2" placeholder="توضیحات..."></textarea>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-add-modal-save" style="margin-top: 15px; width: 100%;">ذخیره در تقویم</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Edit/Delete Activity Slot -->
+    <div class="modal-overlay hidden" id="cal-edit-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px);">
+      <div class="modal-card" style="background: rgba(17, 24, 39, 0.95); border: 1px solid var(--card-border); border-radius: 16px; padding: 25px; width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+          <h3 id="lbl-edit-modal-title" style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main);">ویرایش فعالیت در تقویم</h3>
+          <button class="modal-close-btn" id="cal-edit-modal-close-btn" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;">×</button>
+        </div>
+        <form id="cal-edit-form" class="activity-form" style="margin-top: 15px;">
+          <input type="hidden" id="cal-edit-id">
+          <div class="form-group">
+            <label for="cal-edit-cat" id="lbl-edit-modal-cat">دسته فعالیت</label>
+            <select id="cal-edit-cat" required>
+              <option value="Work">💼 کار و پروژه</option>
+              <option value="Study">📚 درس و مطالعه</option>
+              <option value="Exercise">🏃 ورزش و باشگاه</option>
+              <option value="Meditation">🧘 مدیتیشن و تمرکز</option>
+              <option value="Leisure">🎮 تفریح و سرگرمی</option>
+              <option value="Sleep">😴 خواب و استراحت</option>
+              <option value="Chores">🧹 کارهای خانه</option>
+            </select>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="cal-edit-date" id="lbl-edit-modal-date">تاریخ</label>
+              <input type="date" id="cal-edit-date" required>
+            </div>
+            <div class="form-group">
+              <label for="cal-edit-productivity" id="lbl-edit-modal-productivity">بهره‌وری (۱ - ۱۰)</label>
+              <input type="number" id="cal-edit-productivity" min="1" max="10" required>
+            </div>
+          </div>
+          <div class="form-group-row" style="margin-top: 10px;">
+            <div class="form-group">
+              <label for="cal-edit-start-time" id="lbl-edit-modal-start">ساعت شروع</label>
+              <input type="time" id="cal-edit-start-time" required>
+            </div>
+            <div class="form-group">
+              <label for="cal-edit-end-time" id="lbl-edit-modal-end">ساعت پایان</label>
+              <input type="time" id="cal-edit-end-time" required>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 10px;">
+            <label for="cal-edit-notes" id="lbl-edit-modal-notes">یادداشت / توضیحات</label>
+            <textarea id="cal-edit-notes" rows="2" placeholder="توضیحات..."></textarea>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" class="btn-primary" style="flex: 1;" id="btn-edit-modal-save">اعمال تغییرات</button>
+            <button type="button" class="btn-secondary" style="flex: 1; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #ef4444;" id="btn-edit-modal-delete">حذف فعالیت</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  <!-- Audio elements for alarms -->
+  <audio id="alarm-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-500.wav" preload="auto"></audio>
+  <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/911/911-500.wav" preload="auto"></audio>
+
+  <script src="app.js"></script>
+</body>
+</html>

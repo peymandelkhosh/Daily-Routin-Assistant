@@ -1,0 +1,58 @@
+{
+  "burnout": {
+    "title_fa": "پیشگیری و مدیریت فرسودگی شغلی (Burnout)",
+    "title_en": "Burnout Prevention & Management",
+    "tips_fa": [
+      "فرسودگی شغلی ناشی از استرس مزمن و مدیریت‌نشده در محیط کار است و با خستگی مفرط عاطفی، بی‌تفاوتی و کاهش کارآمدی مشخص می‌شود.",
+      "تعیین مرزهای مشخص کاری بسیار مهم است؛ ساعات کاری مشخصی تعریف کنید و خارج از آن ساعات به کارهای غیرکاری بپردازید.",
+      "نشانه‌های اولیه فرسودگی شامل خستگی مزمن، تحریک‌پذیری، کاهش تمرکز و اختلال در خواب است. در صورت مشاهده این علائم، حتماً بار کاری خود را کاهش دهید."
+    ],
+    "tips_en": [
+      "Burnout results from chronic, unmanaged workplace stress. It is characterized by emotional exhaustion, cynicism, and reduced efficacy.",
+      "Setting firm boundaries is crucial. Define specific working hours and disconnect completely from professional tasks outside them.",
+      "Early warning signs include chronic fatigue, irritability, lack of focus, and sleep issues. If noticed, reduce workload immediately."
+    ]
+  },
+  "social_connection": {
+    "title_fa": "اهمیت ارتباطات اجتماعی و خانواده",
+    "title_en": "Importance of Social Connections & Family",
+    "tips_fa": [
+      "انسان‌ها موجوداتی اجتماعی هستند. صرف زمان با کیفیت با خانواده و دوستان سیستم عصبی پاراسمپاتیک را فعال کرده و سطح کورتیزول (هورمون استرس) را کاهش می‌دهد.",
+      "حتی یک گپ کوتاه یا یک شام مشترک با عزیزان می‌تواند ظرفیت‌های ذهنی و تمرکز شما را بازیابی کند.",
+      "کار مداوم و قطع ارتباط با خانواده منجر به فرسودگی سریع‌تر و کاهش طولانی‌مدت بهره‌وری می‌شود."
+    ],
+    "tips_en": [
+      "Humans are social creatures. Quality time with family and friends activates the parasympathetic nervous system, lowering cortisol (stress hormone).",
+      "Even a brief chat or a shared meal with loved ones can restore cognitive capacity and mental focus.",
+      "Uninterrupted work combined with isolation leads to rapid burnout and long-term drop in productivity."
+    ]
+  },
+  "behavioral_activation": {
+    "title_fa": "فعال‌سازی رفتاری و تعادل کار و تفریح",
+    "title_en": "Behavioral Activation & Work-Life Balance",
+    "tips_fa": [
+      "فعال‌سازی رفتاری شامل وارد کردن عمدی فعالیت‌های لذت‌بخش و بدون فشار به برنامه روزانه است، حتی زمانی که انگیزه کمی دارید.",
+      "اختصاص دادن حداقل ۱ الی ۲ ساعت در روز به کارهای تفریحی (Leisure) به مغز شما اجازه می‌دهد استراحت و ریکاوری کند.",
+      "تفریح هدر رفتن وقت نیست؛ بلکه نوعی سرمایه‌گذاری برای حفظ کیفیت و کارایی فعالیت‌های حرفه‌ای شماست."
+    ],
+    "tips_en": [
+      "Behavioral activation involves intentionally reintroducing pleasant, low-stakes activities into your schedule, even when motivation is low.",
+      "Allocating at least 1-2 hours daily to leisure tasks allows your brain to rest, recover, and rebuild energy.",
+      "Leisure is not wasted time; it is a necessary investment to sustain the quality and efficiency of your professional tasks."
+    ]
+  },
+  "cognitive_reframing": {
+    "title_fa": "بازسازی شناختی و پذیرش محدودیت‌ها (CBT)",
+    "title_en": "Cognitive Reframing & CBT",
+    "tips_fa": [
+      "ارزش انسانی شما با میزان بهره‌وری و کار روزانه‌تان سنجیده نمی‌شود. کمال‌گرایی افراطی را به چالش بکشید.",
+      "خستگی امروز را به عنوان یک نشانه فیزیولوژیک طبیعی از طرف بدن بپذیرید، نه به عنوان یک شکست یا تنبلی.",
+      "به جای گفتگوی درونی منفی (مانند: 'من بی‌عرضه‌ام چون امروز کاری نکردم')، با خود شفقت داشته باشید (بگویید: 'طبیعی است که بعد از روزها تلاش، بدنم نیاز به استراحت دارد')."
+    ],
+    "tips_en": [
+      "Your self-worth is not tied to your daily productivity. Challenge extreme perfectionism.",
+      "Accept today's fatigue as a normal physiological signal from your body, not as a personal failure or laziness.",
+      "Replace negative self-talk ('I am useless for not working today') with self-compassion ('It is normal for my body to need rest after days of effort')."
+    ]
+  }
+}

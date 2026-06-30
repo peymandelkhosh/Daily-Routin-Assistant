@@ -1,0 +1,226 @@
+[
+  {
+    "id": "seed-sleep-6",
+    "date": "2026-06-10",
+    "activity": "Sleep",
+    "duration": 8,
+    "productivity": 8,
+    "notes": "Felt rested."
+  },
+  {
+    "id": "seed-work-6",
+    "date": "2026-06-10",
+    "activity": "Work",
+    "duration": 6,
+    "productivity": 9,
+    "notes": "Focused on project goals."
+  },
+  {
+    "id": "seed-exercise-6",
+    "date": "2026-06-10",
+    "activity": "Exercise",
+    "duration": 1,
+    "productivity": 10,
+    "notes": "Great workout session."
+  },
+  {
+    "id": "seed-chores-6",
+    "date": "2026-06-10",
+    "activity": "Chores",
+    "duration": 2,
+    "productivity": 6,
+    "notes": "Cleaning and cooking."
+  },
+  {
+    "id": "seed-sleep-5",
+    "date": "2026-06-11",
+    "activity": "Sleep",
+    "duration": 8,
+    "productivity": 8,
+    "notes": "Felt rested."
+  },
+  {
+    "id": "seed-work-5",
+    "date": "2026-06-11",
+    "activity": "Work",
+    "duration": 6,
+    "productivity": 8,
+    "notes": "Focused on project goals."
+  },
+  {
+    "id": "seed-study-5",
+    "date": "2026-06-11",
+    "activity": "Study",
+    "duration": 1,
+    "productivity": 10,
+    "notes": "Learned something new."
+  },
+  {
+    "id": "seed-exercise-5",
+    "date": "2026-06-11",
+    "activity": "Exercise",
+    "duration": 1,
+    "productivity": 10,
+    "notes": "Great workout session."
+  },
+  {
+    "id": "seed-sleep-4",
+    "date": "2026-06-12",
+    "activity": "Sleep",
+    "duration": 8,
+    "productivity": 8,
+    "notes": "Felt rested."
+  },
+  {
+    "id": "seed-leisure-4",
+    "date": "2026-06-12",
+    "activity": "Leisure",
+    "duration": 7,
+    "productivity": 5,
+    "notes": "Relaxing weekend time."
+  },
+  {
+    "id": "seed-exercise-4",
+    "date": "2026-06-12",
+    "activity": "Exercise",
+    "duration": 1,
+    "productivity": 10,
+    "notes": "Great workout session."
+  },
+  {
+    "id": "seed-sleep-3",
+    "date": "2026-06-13",
+    "activity": "Sleep",
+    "duration": 7,
+    "productivity": 8,
+    "notes": "Felt rested."
+  },
+  {
+    "id": "seed-leisure-3",
+    "date": "2026-06-13",
+    "activity": "Leisure",
+    "duration": 8,
+    "productivity": 5,
+    "notes": "Relaxing weekend time."
+  },
+  {
+    "id": "seed-exercise-3",
+    "date": "2026-06-13",
+    "activity": "Exercise",
+    "duration": 1,
+    "productivity": 10,
+    "notes": "Great workout session."
+  },
+  {
+    "id": "seed-chores-3",
+    "date": "2026-06-13",
+    "activity": "Chores",
+    "duration": 2,
+    "productivity": 6,
+    "notes": "Cleaning and cooking."
+  },
+  {
+    "id": "seed-sleep-2",
+    "date": "2026-06-14",
+    "activity": "Sleep",
+    "duration": 8,
+    "productivity": 8,
+    "notes": "Felt rested."
+  },
+  {
+    "id": "seed-work-2",
+    "date": "2026-06-14",
+    "activity": "Work",
+    "duration": 7,
+    "productivity": 7,
+    "notes": "Focused on project goals."
+  },
+  {
+    "id": "seed-study-2",
+    "date": "2026-06-14",
+    "activity": "Study",
+    "duration": 2,
+    "productivity": 10,
+    "notes": "Learned something new."
+  },
+  {
+    "id": "seed-exercise-2",
+    "date": "2026-06-14",
+    "activity": "Exercise",
+    "duration": 1,
+    "productivity": 10,
+    "notes": "Great workout session."
+  },
+  {
+    "id": "seed-sleep-1",
+    "date": "2026-06-15",
+    "activity": "Sleep",
+    "duration": 8,
+    "productivity": 8,
+    "notes": "Felt rested."
+  },
+  {
+    "id": "seed-work-1",
+    "date": "2026-06-15",
+    "activity": "Work",
+    "duration": 7,
+    "productivity": 8,
+    "notes": "Focused on project goals."
+  },
+  {
+    "id": "seed-exercise-1",
+    "date": "2026-06-15",
+    "activity": "Exercise",
+    "duration": 1,
+    "productivity": 10,
+    "notes": "Great workout session."
+  },
+  {
+    "id": "seed-chores-1",
+    "date": "2026-06-15",
+    "activity": "Chores",
+    "duration": 1,
+    "productivity": 6,
+    "notes": "Cleaning and cooking."
+  },
+  {
+    "id": "seed-sleep-0",
+    "date": "2026-06-16",
+    "activity": "Sleep",
+    "duration": 8,
+    "productivity": 8,
+    "notes": "Felt rested."
+  },
+  {
+    "id": "seed-work-0",
+    "date": "2026-06-16",
+    "activity": "Work",
+    "duration": 8,
+    "productivity": 7,
+    "notes": "Focused on project goals."
+  },
+  {
+    "id": "seed-study-0",
+    "date": "2026-06-16",
+    "activity": "Study",
+    "duration": 2,
+    "productivity": 8,
+    "notes": "Learned something new."
+  },
+  {
+    "id": "seed-exercise-0",
+    "date": "2026-06-16",
+    "activity": "Exercise",
+    "duration": 1,
+    "productivity": 10,
+    "notes": "Great workout session."
+  },
+  {
+    "id": "seed-chores-0",
+    "date": "2026-06-16",
+    "activity": "Chores",
+    "duration": 2,
+    "productivity": 6,
+    "notes": "Cleaning and cooking."
+  }
+]
