@@ -385,6 +385,31 @@ app.post('/api/medals', authenticateToken, async (req, res) => {
   }
 });
 
+// Habits API
+app.get('/api/habits', authenticateToken, async (req, res) => {
+  try {
+    const habits = await dbService.getCustomHabits(req.user.id);
+    res.json(habits);
+  } catch (err) {
+    console.error("API error getting habits:", err);
+    res.status(500).json({ error: 'Failed to retrieve habits' });
+  }
+});
+
+app.post('/api/habits', authenticateToken, async (req, res) => {
+  const { habitKey, habitName, habitEmoji, habitDesc } = req.body;
+  if (!habitKey || !habitName || !habitEmoji) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  try {
+    const result = await dbService.addCustomHabit(req.user.id, { habitKey, habitName, habitEmoji, habitDesc: habitDesc || 'عادت روزانه' });
+    res.status(201).json(result);
+  } catch (err) {
+    console.error("API error adding custom habit:", err);
+    res.status(500).json({ error: 'Failed to save custom habit' });
+  }
+});
+
 // 8. AI Parser & Scheduler APIs
 app.post('/api/parse-input', authenticateToken, async (req, res) => {
   const { text, lang } = req.body;

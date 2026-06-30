@@ -529,6 +529,7 @@ let taskLogs = [];
 let birthdayLogs = [];
 let scheduleLogs = [];
 let medalLogs = [];
+let habitsList = [];
 
 let timeChart = null;
 let productivityChart = null;
@@ -811,6 +812,63 @@ document.addEventListener('DOMContentLoaded', () => {
   // Bind daily medals checkboxes
   bindMedalEvents();
 
+  // Bind Add Custom Medal Modal
+  const btnAddMedal = document.getElementById('btn-add-medal');
+  const medalAddModal = document.getElementById('medal-add-modal');
+  const medalAddClose = document.getElementById('medal-add-modal-close-btn');
+  const medalAddForm = document.getElementById('medal-add-form');
+
+  if (btnAddMedal && medalAddModal) {
+    btnAddMedal.addEventListener('click', () => {
+      document.getElementById('medal-add-name').value = '';
+      document.getElementById('medal-add-emoji').value = '💧';
+      document.getElementById('medal-add-key').value = '';
+      document.getElementById('medal-add-desc').value = '';
+      medalAddModal.classList.remove('hidden');
+    });
+  }
+
+  if (medalAddClose && medalAddModal) {
+    medalAddClose.addEventListener('click', () => {
+      medalAddModal.classList.add('hidden');
+    });
+  }
+
+  if (medalAddForm && medalAddModal) {
+    medalAddForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!token) return;
+
+      const habitKey = document.getElementById('medal-add-key').value.trim().toLowerCase();
+      const habitName = document.getElementById('medal-add-name').value.trim();
+      const habitEmoji = document.getElementById('medal-add-emoji').value.trim();
+      const habitDesc = document.getElementById('medal-add-desc').value.trim();
+
+      try {
+        const res = await fetch('/api/habits', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ habitKey, habitName, habitEmoji, habitDesc })
+        });
+
+        if (res.ok) {
+          medalAddModal.classList.add('hidden');
+          notifSound.play().catch(e => console.log(e));
+          await fetchData();
+          alert(activeLang === 'fa' ? '✅ مدال جدید با موفقیت ایجاد شد!' : '✅ Custom habit medal created successfully!');
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert((activeLang === 'fa' ? '❌ خطا در تعریف مدال: ' : '❌ Error creating medal: ') + (errData.error || res.statusText));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
+
   // Bind journal writer form and mic events
   bindJournalWriterEvents();
 
@@ -997,14 +1055,16 @@ async function saveUserLanguagePreference(lang) {
 async function fetchData() {
   if (!token) return;
   try {
-    const [actRes, jRes, medalRes] = await Promise.all([
+    const [actRes, jRes, medalRes, habitsRes] = await Promise.all([
       fetch('/api/activities', { headers: { 'Authorization': `Bearer ${token}` } }),
       fetch('/api/journal', { headers: { 'Authorization': `Bearer ${token}` } }),
-      fetch('/api/medals', { headers: { 'Authorization': `Bearer ${token}` } })
+      fetch('/api/medals', { headers: { 'Authorization': `Bearer ${token}` } }),
+      fetch('/api/habits', { headers: { 'Authorization': `Bearer ${token}` } })
     ]);
     activityLogs = await actRes.json();
     journalLogs = await jRes.json();
     medalLogs = await medalRes.json();
+    habitsList = await habitsRes.json();
 
     updateStats();
     renderActivitiesTable();
@@ -3467,6 +3527,26 @@ function initFloatingChat() {
           adviceBox.classList.remove('hidden');
         }
         triggerPrefillHighlight('wellness-mentor-section');
+      } else if (res.intent === 'add_medal' && data) {
+        if (data.habitName) {
+          document.getElementById('medal-add-name').value = data.habitName;
+        }
+        if (data.habitEmoji) {
+          document.getElementById('medal-add-emoji').value = data.habitEmoji;
+        }
+        if (data.habitKey) {
+          document.getElementById('medal-add-key').value = data.habitKey;
+        }
+        if (data.habitDesc) {
+          document.getElementById('medal-add-desc').value = data.habitDesc;
+        }
+        
+        const modal = document.getElementById('medal-add-modal');
+        if (modal) modal.classList.remove('hidden');
+
+        triggerPrefillHighlight('tut-medals-panel');
+        const nameInput = document.getElementById('medal-add-name');
+        if (nameInput) nameInput.focus();
       }
     } catch (err) {
       console.error(err);
@@ -3537,38 +3617,59 @@ function initFloatingChat() {
 // Render Daily Medals completion and calculate streaks
 function renderMedals() {
   const todayStr = new Date().toISOString().split('T')[0];
-  const habits = ['reading', 'meditation', 'exercise'];
+  const container = document.querySelector('.medals-container');
+  if (!container) return;
+
+  container.innerHTML = '';
   
-  habits.forEach(habit => {
-    const chk = document.getElementById(`chk-medal-${habit}`);
-    const badge = document.getElementById(`badge-medal-${habit}`);
-    const streakTxt = document.getElementById(`lbl-streak-${habit}`);
+  const list = habitsList && habitsList.length > 0 ? habitsList : [
+    { habitKey: 'reading', habitEmoji: '📖', habitName: 'مطالعه کتاب (حداقل ۱ صفحه)', habitDesc: 'عادت روزانه' },
+    { habitKey: 'meditation', habitEmoji: '🧘', habitName: 'مدیتیشن و تمرکز (حداقل ۱ دقیقه)', habitDesc: 'عادت روزانه' },
+    { habitKey: 'exercise', habitEmoji: '🏃', habitName: 'ورزش و تندرستی (بدون محدودیت زمان)', habitDesc: 'عادت روزانه' }
+  ];
 
-    const isDoneToday = medalLogs.some(m => m.date === todayStr && m.habitType === habit && m.completed === 1);
+  list.forEach(habit => {
+    const isDoneToday = medalLogs.some(m => m.date === todayStr && m.habitType === habit.habitKey && m.completed === 1);
+    const streakVal = calculateStreak(habit.habitKey);
     
-    if (chk) chk.checked = isDoneToday;
-    
-    if (badge) {
-      if (isDoneToday) {
-        badge.classList.add('active');
-        badge.classList.remove('inactive');
-      } else {
-        badge.classList.remove('active');
-        badge.classList.add('inactive');
-      }
+    let habitName = habit.habitName;
+    let habitDesc = habit.habitDesc;
+    let badgeEmoji = habit.habitEmoji;
+
+    // Apply translations for default habits
+    if (habit.habitKey === 'reading') {
+      habitName = activeLang === 'fa' ? '📖 مطالعه کتاب (حداقل ۱ صفحه)' : (activeLang === 'de' ? '📖 Buch lesen (min. 1 Seite)' : '📖 Read Book (min. 1 page)');
+      habitDesc = activeLang === 'fa' ? 'عادت روزانه' : (activeLang === 'de' ? 'Tägliche Gewohnheit' : 'Daily habit');
+    } else if (habit.habitKey === 'meditation') {
+      habitName = activeLang === 'fa' ? '🧘 مدیتیشن و تمرکز (حداقل ۱ دقیقه)' : (activeLang === 'de' ? '🧘 Meditation (min. 1 Minute)' : '🧘 Meditation (min. 1 minute)');
+      habitDesc = activeLang === 'fa' ? 'عادت روزانه' : (activeLang === 'de' ? 'Tägliche Gewohnheit' : 'Daily habit');
+    } else if (habit.habitKey === 'exercise') {
+      habitName = activeLang === 'fa' ? '🏃 ورزش و تندرستی (بدون محدودیت زمان)' : (activeLang === 'de' ? '🏃 Sport & Gesundheit' : '🏃 Exercise & Wellness');
+      habitDesc = activeLang === 'fa' ? 'عادت روزانه' : (activeLang === 'de' ? 'Tägliche Gewohnheit' : 'Daily habit');
     }
 
-    // Calculate habit streak
-    const streakVal = calculateStreak(habit);
-    if (streakTxt) {
-      if (streakVal > 0) {
-        streakTxt.innerHTML = activeLang === 'fa' ? `🔥 رکورد: ${streakVal} روز متوالی` : `🔥 Streak: ${streakVal} days`;
-        streakTxt.style.color = '#f59e0b';
-      } else {
-        streakTxt.innerHTML = activeLang === 'fa' ? 'بدون رکورد فعال' : 'No active streak';
-        streakTxt.style.color = '';
-      }
+    let streakHTML = '';
+    if (streakVal > 0) {
+      streakHTML = activeLang === 'fa' ? `🔥 رکورد: ${streakVal} روز متوالی` : `🔥 Streak: ${streakVal} days`;
+    } else {
+      streakHTML = activeLang === 'fa' ? 'بدون رکورد فعال' : 'No active streak';
     }
+
+    const row = document.createElement('div');
+    row.className = 'medal-row';
+    row.style = 'display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 12px;';
+    
+    row.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <input type="checkbox" class="medal-checkbox" id="chk-medal-${habit.habitKey}" data-habit="${habit.habitKey}" ${isDoneToday ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+        <div class="medal-info">
+          <div style="font-weight: 700; font-size: 0.9rem;">${habitName}</div>
+          <div style="font-size: 0.75rem; color: ${streakVal > 0 ? '#f59e0b' : 'var(--text-muted)'};" id="lbl-streak-${habit.habitKey}">${streakHTML}</div>
+        </div>
+      </div>
+      <div class="medal-badge ${isDoneToday ? 'active' : 'inactive'}" id="badge-medal-${habit.habitKey}" style="font-size: 1.8rem; filter: ${isDoneToday ? 'none' : 'grayscale(1)'}; transition: all 0.3s;" title="${habitName}">${badgeEmoji}</div>
+    `;
+    container.appendChild(row);
   });
 }
 

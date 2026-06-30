@@ -109,6 +109,19 @@ function initializeDatabase() {
       )
     `);
 
+    // 7.5. Create custom_habits table
+    db.run(`
+      CREATE TABLE IF NOT EXISTS custom_habits (
+        id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL,
+        habitKey TEXT NOT NULL,
+        habitName TEXT NOT NULL,
+        habitEmoji TEXT NOT NULL,
+        habitDesc TEXT NOT NULL,
+        UNIQUE(userId, habitKey)
+      )
+    `);
+
     // --- Migrations for existing DBs: Add userId column if not present ---
     const tables = ['activities', 'journal_entries', 'tasks', 'birthdays'];
     tables.forEach(table => {
@@ -566,6 +579,41 @@ const dbService = {
           }
         );
       }
+    });
+  },
+
+  getCustomHabits: (userId) => {
+    return new Promise((resolve, reject) => {
+      db.all(`SELECT * FROM custom_habits WHERE userId = ?`, [userId], (err, rows) => {
+        if (err) return reject(err);
+        
+        if (rows.length === 0) {
+          const defaults = [
+            { id: `${userId}_reading`, userId, habitKey: 'reading', habitName: 'مطالعه کتاب (حداقل ۱ صفحه)', habitEmoji: '📖', habitDesc: 'عادت روزانه' },
+            { id: `${userId}_meditation`, userId, habitKey: 'meditation', habitName: 'مدیتیشن و تمرکز (حداقل ۱ دقیقه)', habitEmoji: '🧘', habitDesc: 'عادت روزانه' },
+            { id: `${userId}_exercise`, userId, habitKey: 'exercise', habitName: 'ورزش و تندرستی (بدون محدودیت زمان)', habitEmoji: '🏃', habitDesc: 'عادت روزانه' }
+          ];
+          defaults.forEach(def => {
+            db.run(`INSERT OR IGNORE INTO custom_habits (id, userId, habitKey, habitName, habitEmoji, habitDesc) VALUES (?, ?, ?, ?, ?, ?)`,
+              [def.id, def.userId, def.habitKey, def.habitName, def.habitEmoji, def.habitDesc]);
+          });
+          return resolve(defaults);
+        }
+        resolve(rows);
+      });
+    });
+  },
+
+  addCustomHabit: (userId, habit) => {
+    const id = Date.now().toString() + Math.random().toString().substring(2, 6);
+    return new Promise((resolve, reject) => {
+      db.run(`INSERT INTO custom_habits (id, userId, habitKey, habitName, habitEmoji, habitDesc) VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, userId, habit.habitKey, habit.habitName, habit.habitEmoji, habit.habitDesc],
+        function(err) {
+          if (err) return reject(err);
+          resolve({ id, userId, ...habit });
+        }
+      );
     });
   }
 };

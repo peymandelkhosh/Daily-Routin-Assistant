@@ -188,7 +188,10 @@
           <div class="workspace-column left-column" id="home-left-col" style="display: flex; flex-direction: column; gap: 25px;">
             <!-- Medals & Habits Panel -->
             <section class="workspace-card medals-panel" id="tut-medals-panel">
-              <h3 class="card-title" id="lbl-medals-panel-title" style="border-right-color: var(--accent-amber);">🏆 مدال‌ها و دستاوردهای امروز</h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 class="card-title" id="lbl-medals-panel-title" style="border-right-color: var(--accent-amber); margin: 0;">🏆 مدال‌ها و دستاوردهای امروز</h3>
+                <button class="cal-add-btn" id="btn-add-medal" title="Add custom habit medal" style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); border: none; color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--primary-glow); transition: transform 0.2s;">+</button>
+              </div>
               <p class="ai-planner-desc" id="lbl-medals-panel-desc">حداقل هدف‌های روزانه خود را برای کسب انگیزه تیک بزنید یا فعالیت مربوط به آن‌ها را ثبت کنید تا مدال بگیرید!</p>
               
               <div class="medals-container" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
@@ -788,6 +791,37 @@
             <button type="submit" class="btn-primary" style="flex: 1;" id="btn-edit-modal-save">اعمال تغییرات</button>
             <button type="button" class="btn-secondary" style="flex: 1; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #ef4444;" id="btn-edit-modal-delete">حذف فعالیت</button>
           </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Add Custom Habit Medal -->
+    <div class="modal-overlay hidden" id="medal-add-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px);">
+      <div class="modal-card" style="background: rgba(17, 24, 39, 0.95); border: 1px solid var(--card-border); border-radius: 16px; padding: 25px; width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+          <h3 id="lbl-add-medal-title" style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main);">تعریف مدال و عادت جدید</h3>
+          <button class="modal-close-btn" id="medal-add-modal-close-btn" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;">×</button>
+        </div>
+        <form id="medal-add-form" class="activity-form" style="margin-top: 15px;">
+          <div class="form-group">
+            <label for="medal-add-name" id="lbl-add-medal-name">عنوان عادت</label>
+            <input type="text" id="medal-add-name" placeholder="مثلاً: نوشیدن آب، ورزش" required>
+          </div>
+          <div class="form-group-row" style="margin-top: 10px;">
+            <div class="form-group">
+              <label for="medal-add-emoji" id="lbl-add-medal-emoji">ایموجی مدال</label>
+              <input type="text" id="medal-add-emoji" placeholder="💧" required maxlength="4" style="text-align: center; font-size: 1.2rem;">
+            </div>
+            <div class="form-group">
+              <label for="medal-add-key" id="lbl-add-medal-key">شناسه انگلیسی (کوتاه)</label>
+              <input type="text" id="medal-add-key" placeholder="water" required>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 10px;">
+            <label for="medal-add-desc" id="lbl-add-medal-desc">توضیح هدف (زیرعنوان)</label>
+            <input type="text" id="medal-add-desc" placeholder="مثلاً: حداقل ۸ لیوان" required>
+          </div>
+          <button type="submit" class="btn-primary" id="btn-add-medal-save" style="margin-top: 15px; width: 100%;">ثبت و ایجاد عادت</button>
         </form>
       </div>
     </div>

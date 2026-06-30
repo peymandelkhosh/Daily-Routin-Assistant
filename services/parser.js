@@ -419,20 +419,21 @@ const ASSISTANT_SYSTEM_PROMPT = (lang) => `
 You are the AI Assistant for SyncRoutine, a smart personal assistant dashboard.
 The user is talking or chatting with you in one of three languages: English, Persian (Farsi), or German.
 
-Your task is to analyze the input and determine the user's intent. You MUST classify the input into one of these 7 intents:
+Your task is to analyze the input and determine the user's intent. You MUST classify the input into one of these 8 intents:
 1. "log_activity" (e.g. "I worked for 2 hours", "Record my work from 9 to 11", "ثبت فعالیت کار به مدت ۲ ساعت")
 2. "log_journal" (e.g. "Today was a great day, I felt very happy", "امروز خیلی خسته‌ام و حوصله ندارم")
 3. "add_task" (e.g. "Add a task to buy milk", "تسک پروژه دانشگاه را اضافه کن")
 4. "add_schedule" (e.g. "Schedule a workout at 5 PM", "برنامه برای ساعت ۱۸ ورزش ثبت کن")
 5. "add_birthday" (e.g. "Save Sina's birthday on June 25th", "تولد زهرا را ثبت کن برای ۰۵-۱۲")
 6. "wellness_consult" (e.g. "I am feeling very anxious and stressed", "خیلی تحت فشارم و حالم خوب نیست")
-7. "general_query" (e.g. "What is my total tracked time?", "چطور کار میکنی؟", "سلام چطوری؟")
+7. "add_medal" (e.g. "یک مدال جدید اضافه کن برای نوشیدن آب با ایموجی 💧", "add a custom medal for daily coding")
+8. "general_query" (e.g. "What is my total tracked time?", "چطور کار میکنی؟", "سلام چطوری؟")
 
 You MUST return a strictly valid JSON object.
 JSON Schema:
 {
-  "intent": "log_activity" | "log_journal" | "add_task" | "add_schedule" | "add_birthday" | "wellness_consult" | "general_query",
-  "targetView": "dashboard" | "dashboard" | "tasks-alarms" | "tasks-alarms" | "settings" | "wellness" | null,
+  "intent": "log_activity" | "log_journal" | "add_task" | "add_schedule" | "add_birthday" | "wellness_consult" | "add_medal" | "general_query",
+  "targetView": "home" | "dashboard" | "analytics" | "tasks-alarms" | "wellness" | "settings" | "journal" | null, // Note: log_activity and log_journal should target "home" because the logger panel is located there.
   "data": {
     // For "log_activity"
     "activity": "Work" | "Study" | "Exercise" | "Leisure" | "Sleep" | "Chores",
@@ -462,10 +463,16 @@ JSON Schema:
     // For "wellness_consult"
     "advice": "Therapeutic counseling response in user's language",
 
+    // For "add_medal"
+    "habitKey": "english-short-key",
+    "habitName": "Habit Title (e.g. نوشیدن آب or Reading)",
+    "habitEmoji": "Emoji symbol (e.g. 💧, 📖, 🧘)",
+    "habitDesc": "Daily target description",
+
     // For "general_query"
     "reply": "Helpful, conversational answer in user's language"
   },
-  "message": "A short, friendly message in the user's language (${lang}) explaining what you did (e.g. 'من صفحه را به برنامه تغییر دادم و تسک خرید نان را وارد کردم تا تایید کنید.')"
+  "message": "A short, friendly message in the user's language (${lang}) explaining what you did (e.g. 'من فرم ایجاد مدال جدید را برای شما باز و مقادیر را پر کردم تا بازبینی کنید.')"
 }
 `;
 
@@ -473,6 +480,15 @@ function parseAssistantFallback(text, lang = 'fa') {
   console.log("Using assistant fallback rule parser...");
   const textLower = text.toLowerCase();
   
+  if (textLower.includes("مدال") || textLower.includes("medal") || textLower.includes("عادت") || textLower.includes("habit")) {
+    return {
+      intent: "add_medal",
+      targetView: "tasks-alarms",
+      data: { habitKey: "custom_habit", habitName: text, habitEmoji: "🎖", habitDesc: "هدف روزانه" },
+      message: lang === 'fa' ? "من شما را به صفحه تسک‌ها و مدال‌ها هدایت کردم و فرم ایجاد مدال جدید را برایتان باز کردم." : "Moved to Tasks & Alarms and opened the new medal form."
+    };
+  }
+
   if (textLower.includes("تولد") || textLower.includes("birthday") || textLower.includes("geburtstag")) {
     let name = "مخاطب";
     const nameMatch = text.match(/(?:تولد|birthday of|geburtstag von)\s*([^\s]+)/i);
@@ -506,18 +522,18 @@ function parseAssistantFallback(text, lang = 'fa') {
   if (textLower.includes("کار کردم") || textLower.includes("ساعت") && (textLower.includes("ساعت") || textLower.includes("دقیقه") || textLower.includes("hour") || textLower.includes("stunde"))) {
     return {
       intent: "log_activity",
-      targetView: "dashboard",
+      targetView: "home",
       data: { activity: "Work", duration: 1.0, productivity: 7, notes: text },
-      message: lang === 'fa' ? "من شما را به صفحه اصلی هدایت کردم و ثبت دستی فعالیت را آماده کردم." : "Moved to Dashboard and filled out the activity form."
+      message: lang === 'fa' ? "من شما را به صفحه نمای کلی هدایت کردم و ثبت دستی فعالیت را آماده کردم." : "Moved to Overview and filled out the activity form."
     };
   }
 
   if (textLower.includes("خاطره") || textLower.includes("یادداشت") || textLower.includes("mood") || textLower.includes("feeling")) {
     return {
       intent: "log_journal",
-      targetView: "dashboard",
+      targetView: "home",
       data: { content: text, sentiment: "neutral" },
-      message: lang === 'fa' ? "من شما را به صفحه اصلی هدایت کردم و ثبت دستی یادداشت را آماده کردم." : "Moved to Dashboard and filled out the journal form."
+      message: lang === 'fa' ? "من شما را به صفحه نمای کلی هدایت کردم و ثبت دستی یادداشت را آماده کردم." : "Moved to Overview and filled out the journal form."
     };
   }
 
