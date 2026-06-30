@@ -8,6 +8,11 @@ const tempLogs = {}; // Cache for pending confirmations
 function startTelegramBot() {
   const token = process.env.TELEGRAM_BOT_TOKEN;
 
+  if (process.env.DISABLE_TELEGRAM_BOT === 'true') {
+    console.log("Telegram Bot polling is disabled in this environment.");
+    return;
+  }
+
   if (!token || token === 'YOUR_TELEGRAM_BOT_TOKEN_HERE') {
     console.warn("TELEGRAM_BOT_TOKEN is not configured. Telegram bot service will not start.");
     return;

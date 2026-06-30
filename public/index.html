@@ -104,11 +104,7 @@
         </div>
 
         <nav style="display: flex; flex-direction: column; gap: 8px;">
-          <a href="#" class="sidebar-link active" data-view="home" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-main); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
-            <span style="font-size: 1.1rem;">🏠</span>
-            <span class="nav-text" id="side-nav-home">صفحه اصلی</span>
-          </a>
-          <a href="#" class="sidebar-link" data-view="dashboard" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+          <a href="#" class="sidebar-link active" data-view="dashboard" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-main); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
             <span style="font-size: 1.1rem;">💼</span>
             <span class="nav-text" id="side-nav-dash">داشبورد و تقویم</span>
           </a>
@@ -131,6 +127,10 @@
           <a href="#" class="sidebar-link" data-view="settings" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
             <span style="font-size: 1.1rem;">⚙️</span>
             <span class="nav-text" id="side-nav-settings">تنظیمات تولدها</span>
+          </a>
+          <a href="#" class="sidebar-link" data-view="home" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: var(--text-muted); font-weight: 600; text-decoration: none; transition: background 0.2s, color 0.2s;">
+            <span style="font-size: 1.1rem;">🏠</span>
+            <span class="nav-text" id="side-nav-home">نمای کلی</span>
           </a>
         </nav>
       </div>
@@ -433,8 +433,8 @@
                 </div>
                 <h3 class="calendar-current-date" id="cal-current-date-txt" style="font-size: 1rem; font-weight: 700; margin: 0;">Monday, Jun 29</h3>
                 <div class="calendar-view-group" style="display: flex; gap: 4px; align-items: center;">
-                  <button class="btn-toggle active btn-sm" data-cal-view="day" id="cal-view-day-btn" style="padding: 6px 10px; font-size: 0.75rem;">Day</button>
-                  <button class="btn-toggle btn-sm" data-cal-view="week" id="cal-view-week-btn" style="padding: 6px 10px; font-size: 0.75rem;">Week</button>
+                  <button class="btn-toggle btn-sm" data-cal-view="day" id="cal-view-day-btn" style="padding: 6px 10px; font-size: 0.75rem;">Day</button>
+                  <button class="btn-toggle active btn-sm" data-cal-view="week" id="cal-view-week-btn" style="padding: 6px 10px; font-size: 0.75rem;">Week</button>
                   <button class="btn-toggle btn-sm" data-cal-view="month" id="cal-view-month-btn" style="padding: 6px 10px; font-size: 0.75rem;">Month</button>
                   <button class="cal-add-btn" id="cal-add-slot-btn" title="Add activity slot" style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); border: none; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 5px; box-shadow: 0 0 10px var(--primary-glow); transition: transform 0.2s;">+</button>
                 </div>
@@ -443,14 +443,14 @@
               <!-- Calendar Body Container -->
               <div class="calendar-body" style="margin-top: 15px; border: 1px solid var(--card-border); border-radius: 12px; background: rgba(15, 23, 42, 0.4); height: 600px; overflow: hidden; position: relative;">
                 <!-- Day View -->
-                <div id="cal-day-view-container" class="cal-view-container" style="height: 100%; overflow-y: auto; position: relative;">
+                <div id="cal-day-view-container" class="cal-view-container hidden" style="height: 100%; overflow-y: auto; position: relative;">
                   <div class="cal-hourly-grid" style="position: relative; width: 100%;">
                     <!-- Rendered dynamically via JS -->
                   </div>
                 </div>
 
                 <!-- Week View -->
-                <div id="cal-week-view-container" class="cal-view-container hidden" style="height: 100%; overflow-y: auto; position: relative;">
+                <div id="cal-week-view-container" class="cal-view-container" style="height: 100%; overflow-y: auto; position: relative;">
                   <div class="cal-week-grid" style="position: relative; width: 100%; height: 100%;">
                     <!-- Rendered dynamically via JS -->
                   </div>
@@ -503,11 +503,28 @@
             <!-- Settings (Birthdays Config) -->
             <section class="workspace-card settings-panel">
               <h3 class="card-title" id="lbl-settings-title" style="border-right-color: var(--accent-green);">⚙️ تنظیمات و تاریخ تولدها</h3>
-              <div class="birthday-config-row">
-                <input type="text" id="bday-name" placeholder="نام مخاطب">
-                <input type="text" id="bday-date" placeholder="MM-DD">
-                <button class="btn-primary" id="add-bday-btn" style="padding: 10px 16px;">ثبت تولد</button>
+              
+              <!-- Theme Settings -->
+              <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+                <label style="font-weight: 700; font-size: 0.9rem;" id="lbl-settings-theme">🎨 تم رنگی نرم‌افزار (Theme Color)</label>
+                <select id="theme-select" style="width: 100%; padding: 8px 12px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; color: var(--text-main); font-weight: 600; cursor: pointer;">
+                  <option value="amethyst" id="opt-theme-amethyst">🔮 یاقوتی تاریک (Dark Amethyst)</option>
+                  <option value="ocean" id="opt-theme-ocean">🌊 اقیانوس نیمه‌شب (Midnight Ocean)</option>
+                  <option value="forest" id="opt-theme-forest">🌲 جنگل زمرد (Emerald Forest)</option>
+                  <option value="sunset" id="opt-theme-sunset">🌅 غروب پرانرژی (Vibrant Sunset)</option>
+                </select>
               </div>
+
+              <!-- Birthdays Section -->
+              <div style="margin-top: 15px; border-top: 1px solid var(--card-border); padding-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                <label style="font-weight: 700; font-size: 0.9rem;" id="lbl-settings-bday-title">🎂 ثبت تاریخ تولدها</label>
+                <div class="birthday-config-row">
+                  <input type="text" id="bday-name" placeholder="نام مخاطب">
+                  <input type="text" id="bday-date" placeholder="MM-DD">
+                  <button class="btn-primary" id="add-bday-btn" style="padding: 10px 16px;">ثبت تولد</button>
+                </div>
+              </div>
+
               <div class="birthdays-list-container" style="max-height: 120px; overflow-y: auto; margin-top: 10px;">
                 <ul class="bday-list" id="bday-list"></ul>
               </div>
@@ -549,8 +566,27 @@
         </div>
       </div>
 
-      <!-- View 1: Dashboard View (Calendar only placeholder) -->
+      <!-- View 1: Dashboard View (Charts + Calendar) -->
       <div class="app-view hidden" id="view-dashboard" style="display: flex; flex-direction: column; gap: 25px;">
+        <!-- Side-by-side Charts above Calendar -->
+        <div class="dashboard-charts-grid" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; width: 100%;">
+          <!-- Left: Pie Chart (Time Allocation) -->
+          <div class="workspace-card" style="height: 270px; display: flex; flex-direction: column; justify-content: space-between;">
+            <h3 class="card-title" id="lbl-dashboard-pie-title" style="font-size: 0.95rem; border-right-color: var(--accent-blue);">📊 سهم فعالیت‌ها (Time Allocation)</h3>
+            <div style="height: 180px; position: relative;">
+              <canvas id="dashboardPieChart"></canvas>
+            </div>
+          </div>
+          <!-- Right: Line Chart (Productivity Trend) -->
+          <div class="workspace-card" style="height: 270px; display: flex; flex-direction: column; justify-content: space-between;">
+            <h3 class="card-title" id="lbl-dashboard-line-title" style="font-size: 0.95rem; border-right-color: var(--accent-purple);">📈 روند بهره‌وری (Productivity Trend)</h3>
+            <div style="height: 180px; position: relative;">
+              <canvas id="dashboardLineChart"></canvas>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Calendar bottom -->
         <div id="calendar-view-placeholder" style="width: 100%;"></div>
       </div>
 
@@ -562,9 +598,12 @@
         </div>
       </div>
 
-      <!-- View 3: Tasks & Alarms View (Tasks panel placeholder) -->
-      <div class="app-view hidden" id="view-tasks-alarms" style="display: flex; flex-direction: column; gap: 25px; align-items: center;">
-        <div id="tasks-view-placeholder" style="max-width: 800px; width: 100%;"></div>
+      <!-- View 3: Tasks & Alarms View -->
+      <div class="app-view hidden" id="view-tasks-alarms" style="display: flex; flex-direction: column; gap: 25px;">
+        <div class="tasks-layout-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start;">
+          <div id="tasks-medals-placeholder" style="width: 100%;"></div>
+          <div id="tasks-view-placeholder" style="width: 100%;"></div>
+        </div>
       </div>
 
       <!-- View 4: Mental Wellness View (Wellness mentor panel placeholder) -->

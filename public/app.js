@@ -144,7 +144,7 @@ const TRANSLATIONS = {
     sideNavWellness: "دستیار سلامت روان",
     sideNavSettings: "تنظیمات تولدها",
     lblLogoutBtn: "خروج از حساب",
-    sideNavHome: "صفحه اصلی",
+    sideNavHome: "نمای کلی",
     sideNavJournal: "دفترچه یادداشت",
     lblJournalWriterTitle: "📓 ثبت یادداشت و حس‌وحال روزانه",
     lblJournalWriterDesc: "یادداشت امروز خود را بنویسید یا ضبط کنید تا هوش مصنوعی حس‌وحال شما را تحلیل کند.",
@@ -152,7 +152,13 @@ const TRANSLATIONS = {
     lblJournalWriteContent: "متن یادداشت",
     lblJournalSaveBtn: "ثبت خاطره روزانه",
     lblJournalHistoryTitle: "📜 تاریخچه یادداشت‌ها",
-    lblMoodStickerTitle: "🎭 تحلیل حس‌وحال شما توسط هوش مصنوعی"
+    lblMoodStickerTitle: "🎭 تحلیل حس‌وحال شما توسط هوش مصنوعی",
+    lblSettingsTheme: "🎨 تم رنگی نرم‌افزار (Theme Color)",
+    lblSettingsBdayTitle: "🎂 ثبت تاریخ تولدها",
+    optThemeAmethyst: "🔮 یاقوتی تاریک (Dark Amethyst)",
+    optThemeOcean: "🌊 اقیانوس نیمه‌شب (Midnight Ocean)",
+    optThemeForest: "🌲 جنگل زمرد (Emerald Forest)",
+    optThemeSunset: "🌅 غروب پرانرژی (Vibrant Sunset)"
   },
   en: {
     appTitle: "SyncRoutine",
@@ -298,7 +304,7 @@ const TRANSLATIONS = {
     sideNavWellness: "Mental Wellness",
     sideNavSettings: "Settings & Birthdays",
     lblLogoutBtn: "Logout of Account",
-    sideNavHome: "Home Page",
+    sideNavHome: "Overview",
     sideNavJournal: "Daily Journal",
     lblJournalWriterTitle: "📓 Log Daily Reflection & Mood",
     lblJournalWriterDesc: "Write or record today's journal entry to analyze your mood with AI.",
@@ -306,7 +312,13 @@ const TRANSLATIONS = {
     lblJournalWriteContent: "Journal Text",
     lblJournalSaveBtn: "Save Journal Reflection",
     lblJournalHistoryTitle: "📜 Journal History Timeline",
-    lblMoodStickerTitle: "🎭 AI Mood Analysis Sticker"
+    lblMoodStickerTitle: "🎭 AI Mood Analysis Sticker",
+    lblSettingsTheme: "🎨 App Theme Color",
+    lblSettingsBdayTitle: "🎂 Register Birthday Reminders",
+    optThemeAmethyst: "🔮 Dark Amethyst Theme",
+    optThemeOcean: "🌊 Midnight Ocean Theme",
+    optThemeForest: "🌲 Emerald Forest Theme",
+    optThemeSunset: "🌅 Vibrant Sunset Theme"
   },
   de: {
     appTitle: "SyncRoutine",
@@ -453,7 +465,7 @@ const TRANSLATIONS = {
     sideNavWellness: "Mentale Gesundheit",
     sideNavSettings: "Einstellungen & Geburtstage",
     lblLogoutBtn: "Abmelden",
-    sideNavHome: "Startseite",
+    sideNavHome: "Übersicht",
     sideNavJournal: "Tagebuch",
     lblJournalWriterTitle: "Tagesreflexion & Stimmung aufzeichnen",
     lblJournalWriterDesc: "Schreiben oder nehmen Sie Ihren heutigen Tagebucheintrag auf, um Ihre Stimmung mit KI zu analysieren.",
@@ -461,7 +473,13 @@ const TRANSLATIONS = {
     lblJournalWriteContent: "Tagebuchtext",
     lblJournalSaveBtn: "Tagebuch speichern",
     lblJournalHistoryTitle: "Tagebuchverlauf",
-    lblMoodStickerTitle: "KI-Stimmungsanalyse-Aufkleber"
+    lblMoodStickerTitle: "KI-Stimmungsanalyse-Aufkleber",
+    lblSettingsTheme: "🎨 App-Farbschema",
+    lblSettingsBdayTitle: "🎂 Geburtstage eintragen",
+    optThemeAmethyst: "🔮 Dunkler Amethyst (Standard)",
+    optThemeOcean: "🌊 Mitternachtsozean",
+    optThemeForest: "🌲 Smaragdwald",
+    optThemeSunset: "🌅 Lebendiger Sonnenuntergang"
   }
 };
 
@@ -514,6 +532,8 @@ let medalLogs = [];
 
 let timeChart = null;
 let productivityChart = null;
+let dashboardPieChart = null;
+let dashboardLineChart = null;
 let pendingParsedResult = null;
 
 // Audio elements
@@ -793,11 +813,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Bind journal writer form and mic events
   bindJournalWriterEvents();
+
+  // Initialize Color Theme
+  const themeSelect = document.getElementById('theme-select');
+  if (themeSelect) {
+    const savedTheme = localStorage.getItem('theme') || 'amethyst';
+    themeSelect.value = savedTheme;
+    applyTheme(savedTheme);
+    themeSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      localStorage.setItem('theme', val);
+      applyTheme(val);
+    });
+  } else {
+    // If select is not yet loaded, apply saved theme directly
+    applyTheme(localStorage.getItem('theme') || 'amethyst');
+  }
 });
 
 // Authentication UI & State
-function initAuthUI() {
+async function initAuthUI() {
   const islandContainer = document.querySelector('.dynamic-island-container');
+  
+  if (!token) {
+    try {
+      // 1. Try to login guest
+      let res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'guest', password: 'guestpassword123' })
+      });
+      
+      // 2. If login fails, try to sign up guest
+      if (!res.ok) {
+        res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'guest', password: 'guestpassword123' })
+        });
+      }
+      
+      if (res.ok) {
+        const data = await res.json();
+        token = data.token;
+        localStorage.setItem('token', token);
+        localStorage.setItem('username', 'guest');
+        if (data.lang) {
+          activeLang = data.lang;
+          localStorage.setItem('activeLang', data.lang);
+        }
+      }
+    } catch (err) {
+      console.error("Unified guest auto-login failed:", err);
+    }
+  }
+
   if (token) {
     authOverlay.classList.add('hidden');
     document.getElementById('main-app-content').classList.remove('hidden');
@@ -808,7 +878,7 @@ function initAuthUI() {
       langSelect.value = activeLang;
     }
     switchLanguage(activeLang);
-    switchView('home');
+    switchView('dashboard');
 
     // Initialize data
     const today = new Date().toISOString().split('T')[0];
@@ -1954,35 +2024,71 @@ function renderCharts() {
   const bgColors = activeCategories.map(c => CATEGORY_COLORS[c]);
   const labels = activeCategories.map(c => dict.categoryNames[c] || c);
 
+  // Time Chart (Overview)
   if (timeChart) timeChart.destroy();
-
-  const ctxTime = document.getElementById('timeChart').getContext('2d');
-  timeChart = new Chart(ctxTime, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: dataValues,
-        backgroundColor: bgColors,
-        borderWidth: 2,
-        borderColor: '#111827',
-        hoverOffset: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            color: '#f1f5f9',
-            font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter', size: 11 }
+  const canvasTime = document.getElementById('timeChart');
+  if (canvasTime) {
+    const ctxTime = canvasTime.getContext('2d');
+    timeChart = new Chart(ctxTime, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: dataValues,
+          backgroundColor: bgColors,
+          borderWidth: 2,
+          borderColor: '#111827',
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#f1f5f9',
+              font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter', size: 11 }
+            }
           }
         }
       }
-    }
-  });
+    });
+  }
+
+  // Dashboard Pie Chart
+  if (dashboardPieChart) dashboardPieChart.destroy();
+  const canvasDashTime = document.getElementById('dashboardPieChart');
+  if (canvasDashTime) {
+    const ctxDashTime = canvasDashTime.getContext('2d');
+    dashboardPieChart = new Chart(ctxDashTime, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: dataValues,
+          backgroundColor: bgColors,
+          borderWidth: 2,
+          borderColor: '#111827',
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#f1f5f9',
+              font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter', size: 11 }
+            }
+          }
+        }
+      }
+    });
+  }
 
   // 2. Productivity trend line
   const prodByDate = {};
@@ -1998,44 +2104,89 @@ function renderCharts() {
   const avgScores = sortedDates.map(d => prodByDate[d].sum / prodByDate[d].count);
   const formattedDates = sortedDates.map(d => formatDateLocal(d));
 
+  // Productivity Chart (Overview)
   if (productivityChart) productivityChart.destroy();
-
-  const ctxProd = document.getElementById('productivityChart').getContext('2d');
-  productivityChart = new Chart(ctxProd, {
-    type: 'line',
-    data: {
-      labels: formattedDates,
-      datasets: [{
-        data: avgScores,
-        borderColor: '#a855f7',
-        backgroundColor: 'rgba(168, 85, 247, 0.15)',
-        borderWidth: 3,
-        fill: true,
-        tension: 0.3,
-        pointBackgroundColor: '#818cf8',
-        pointBorderColor: '#fff'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          grid: { color: 'rgba(255, 255, 255, 0.05)' },
-          ticks: { color: '#94a3b8', font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter', size: 10 } }
-        },
-        y: {
-          min: 1,
-          max: 10,
-          grid: { color: 'rgba(255, 255, 255, 0.05)' },
-          ticks: { color: '#94a3b8', font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter' }, stepSize: 1 }
-        }
+  const canvasProd = document.getElementById('productivityChart');
+  if (canvasProd) {
+    const ctxProd = canvasProd.getContext('2d');
+    productivityChart = new Chart(ctxProd, {
+      type: 'line',
+      data: {
+        labels: formattedDates,
+        datasets: [{
+          data: avgScores,
+          borderColor: '#a855f7',
+          backgroundColor: 'rgba(168, 85, 247, 0.15)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#818cf8',
+          pointBorderColor: '#fff'
+        }]
       },
-      plugins: {
-        legend: { display: false }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#94a3b8', font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter', size: 10 } }
+          },
+          y: {
+            min: 1,
+            max: 10,
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#94a3b8', font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter' }, stepSize: 1 }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
       }
-    }
-  });
+    });
+  }
+
+  // Dashboard Line Chart
+  if (dashboardLineChart) dashboardLineChart.destroy();
+  const canvasDashProd = document.getElementById('dashboardLineChart');
+  if (canvasDashProd) {
+    const ctxDashProd = canvasDashProd.getContext('2d');
+    dashboardLineChart = new Chart(ctxDashProd, {
+      type: 'line',
+      data: {
+        labels: formattedDates,
+        datasets: [{
+          data: avgScores,
+          borderColor: '#a855f7',
+          backgroundColor: 'rgba(168, 85, 247, 0.15)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#818cf8',
+          pointBorderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#94a3b8', font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter', size: 10 } }
+          },
+          y: {
+            min: 1,
+            max: 10,
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#94a3b8', font: { family: activeLang === 'fa' ? 'Vazirmatn' : 'Inter' }, stepSize: 1 }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
 }
 
 // Stats & Dashboard render functions
@@ -2314,7 +2465,14 @@ function switchLanguage(lang) {
     'side-nav-wellness': dict.sideNavWellness,
     'side-nav-settings': dict.sideNavSettings,
     'lbl-logout-btn': dict.lblLogoutBtn,
-    'side-nav-home': dict.sideNavHome
+    'side-nav-home': dict.sideNavHome,
+    'side-nav-journal': dict.sideNavJournal,
+    'lbl-settings-theme': dict.lblSettingsTheme,
+    'lbl-settings-bday-title': dict.lblSettingsBdayTitle,
+    'opt-theme-amethyst': dict.optThemeAmethyst,
+    'opt-theme-ocean': dict.optThemeOcean,
+    'opt-theme-forest': dict.optThemeForest,
+    'opt-theme-sunset': dict.optThemeSunset
   };
 
   for (const [id, text] of Object.entries(elementsToTranslate)) {
@@ -2379,7 +2537,7 @@ function switchLanguage(lang) {
 // Calendar & Interactive Scheduling System
 const HOUR_HEIGHT = 80;
 let currentCalendarDate = new Date();
-let currentCalendarView = 'day'; // 'day', 'week', 'month'
+let currentCalendarView = 'week'; // 'day', 'week', 'month'
 let pendingAiSlots = [];
 let draggedActivity = null;
 let dragStartY = 0;
@@ -3046,6 +3204,7 @@ window.switchView = function(targetView) {
   const settingsPanel = document.querySelector('.settings-panel');
   const anniversaryCard = document.getElementById('anniversary-card-section');
   const calendarBody = document.querySelector('.calendar-body');
+  const medalsPanel = document.getElementById('tut-medals-panel');
 
   if (targetView === 'home') {
     if (calendarCard) document.getElementById('home-center-col').appendChild(calendarCard);
@@ -3055,6 +3214,10 @@ window.switchView = function(targetView) {
     if (wellnessPanel) document.getElementById('home-left-col').appendChild(wellnessPanel);
     if (settingsPanel) document.getElementById('home-right-col').appendChild(settingsPanel);
     if (anniversaryCard) document.getElementById('home-right-col').appendChild(anniversaryCard);
+    if (medalsPanel) {
+      const col = document.getElementById('home-left-col');
+      col.insertBefore(medalsPanel, col.firstChild);
+    }
     
     if (calendarBody) calendarBody.style.height = '600px';
     renderCalendar();
@@ -3067,6 +3230,7 @@ window.switchView = function(targetView) {
     if (logsPanel) document.getElementById('analytics-logs-placeholder').appendChild(logsPanel);
     setTimeout(renderCharts, 50);
   } else if (targetView === 'tasks-alarms') {
+    if (medalsPanel) document.getElementById('tasks-medals-placeholder').appendChild(medalsPanel);
     if (tasksPanel) document.getElementById('tasks-view-placeholder').appendChild(tasksPanel);
   } else if (targetView === 'wellness') {
     if (wellnessPanel) document.getElementById('wellness-view-placeholder').appendChild(wellnessPanel);
@@ -3671,6 +3835,49 @@ function bindJournalWriterEvents() {
         }
       }
     });
+  }
+}
+
+// Apply selected color theme to HTML document
+function applyTheme(theme) {
+  const themes = {
+    amethyst: {
+      '--bg-color': '#0b0f19',
+      '--card-bg': 'rgba(22, 28, 45, 0.65)',
+      '--primary': '#6366f1',
+      '--primary-hover': '#4f46e5',
+      '--primary-glow': 'rgba(99, 102, 241, 0.35)',
+      '--input-focus': '#818cf8'
+    },
+    ocean: {
+      '--bg-color': '#050c1e',
+      '--card-bg': 'rgba(13, 27, 56, 0.65)',
+      '--primary': '#00b4d8',
+      '--primary-hover': '#0077b6',
+      '--primary-glow': 'rgba(0, 180, 216, 0.35)',
+      '--input-focus': '#90e0ef'
+    },
+    forest: {
+      '--bg-color': '#051610',
+      '--card-bg': 'rgba(11, 37, 26, 0.65)',
+      '--primary': '#10b981',
+      '--primary-hover': '#059669',
+      '--primary-glow': 'rgba(16, 185, 129, 0.35)',
+      '--input-focus': '#34d399'
+    },
+    sunset: {
+      '--bg-color': '#150a0a',
+      '--card-bg': 'rgba(40, 18, 18, 0.65)',
+      '--primary': '#f59e0b',
+      '--primary-hover': '#d97706',
+      '--primary-glow': 'rgba(245, 158, 11, 0.35)',
+      '--input-focus': '#fbbf24'
+    }
+  };
+
+  const themeVars = themes[theme] || themes.amethyst;
+  for (const [key, val] of Object.entries(themeVars)) {
+    document.documentElement.style.setProperty(key, val);
   }
 }
 
