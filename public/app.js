@@ -515,6 +515,7 @@ const CATEGORY_COLORS = {
   Work: '#6366f1',     // Indigo
   Study: '#3b82f6',    // Blue
   Exercise: '#10b981', // Green
+  Meditation: '#06b6d4', // Cyan
   Leisure: '#f59e0b',  // Amber
   Sleep: '#a855f7',    // Purple
   Chores: '#ec4899'    // Pink
@@ -3069,10 +3070,65 @@ function renderWeekView() {
   container.appendChild(gridBody);
 }
 
+function createMiniPieChartSvg(dayActs) {
+  if (dayActs.length === 0) return '';
+  const total = dayActs.reduce((sum, act) => sum + (act.duration || 0), 0);
+  if (total === 0) return '';
+
+  let accumulatedPercent = 0;
+  const paths = [];
+
+  dayActs.forEach(act => {
+    const percent = (act.duration || 0) / total;
+    const color = CATEGORY_COLORS[act.activity] || '#94a3b8';
+    
+    if (percent >= 0.99) {
+      paths.push(`<circle cx="12" cy="12" r="9" fill="none" stroke="${color}" stroke-width="6"/>`);
+    } else if (percent > 0) {
+      const startAngle = accumulatedPercent * 360;
+      accumulatedPercent += percent;
+      const endAngle = accumulatedPercent * 360;
+      
+      const r = 9;
+      const cx = 12;
+      const cy = 12;
+      
+      const rad = Math.PI / 180;
+      const x1 = cx + r * Math.sin(startAngle * rad);
+      const y1 = cy - r * Math.cos(startAngle * rad);
+      const x2 = cx + r * Math.sin(endAngle * rad);
+      const y2 = cy - r * Math.cos(endAngle * rad);
+      
+      const largeArc = percent > 0.5 ? 1 : 0;
+      
+      paths.push(`
+        <path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z" 
+              fill="${color}" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+      `);
+    }
+  });
+
+  return `
+    <svg viewBox="0 0 24 24" width="28" height="28" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25)); flex-shrink: 0;">
+      ${paths.join('')}
+    </svg>
+  `;
+}
+
 function renderMonthView() {
   const container = document.getElementById('cal-month-view-container');
   if (!container) return;
-  container.innerHTML = '';
+  
+  // Find or create the inner month grid element
+  let monthGrid = container.querySelector('.cal-month-grid');
+  if (!monthGrid) {
+    monthGrid = document.createElement('div');
+    monthGrid.className = 'cal-month-grid';
+    monthGrid.style.cssText = 'display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px; min-height: 100%;';
+    container.innerHTML = '';
+    container.appendChild(monthGrid);
+  }
+  monthGrid.innerHTML = '';
 
   const tempDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), 1);
   const firstDayIndex = tempDate.getDay();
@@ -3081,6 +3137,7 @@ function renderMonthView() {
   startDate.setDate(startDate.getDate() - firstDayIndex);
 
   const todayStr = new Date().toISOString().split('T')[0];
+  const dict = TRANSLATIONS[activeLang];
 
   for (let i = 0; i < 42; i++) {
     const cellDate = new Date(startDate);
@@ -3109,49 +3166,42 @@ function renderMonthView() {
 
     const dayActs = activityLogs.filter(act => act.date === cellDateStr);
 
-    if (dayActs.length > 0) {
-      const badgeList = document.createElement('div');
-      badgeList.className = 'cal-month-badge-list';
-
-      dayActs.forEach(act => {
-        const badge = document.createElement('div');
-        badge.className = `cal-month-badge badge-${act.activity.toLowerCase()}`;
-        badge.textContent = `${act.activity} (${act.duration}h)`;
-        badge.title = `${act.activity}: ${act.notes || ''}`;
-        
-        badge.addEventListener('click', (e) => {
-          e.stopPropagation();
-          openEditActivityModal(act.id);
-        });
-
-        badgeList.appendChild(badge);
-      });
-
-    // Render day medals indicators (actual emojis)
+    // Build medals html list
+    let medalsHtmlList = [];
     if (typeof medalLogs !== 'undefined' && medalLogs.length > 0) {
       const dayMedals = medalLogs.filter(m => m.date === cellDateStr && m.completed === 1);
-      if (dayMedals.length > 0) {
-        const medalsContainer = document.createElement('div');
-        medalsContainer.className = 'day-medals-container';
-        medalsContainer.style.cssText = 'display: flex; gap: 2px; justify-content: flex-start; margin-top: 4px; padding: 2px 5px;';
-        dayMedals.forEach(m => {
-          const habit = habitsList.find(h => h.habitKey === m.habitType);
-          if (habit) {
-            const span = document.createElement('span');
-            span.style.cssText = 'font-size: 0.95rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));';
-            span.textContent = habit.habitEmoji;
-            span.title = habit.habitName;
-            medalsContainer.appendChild(span);
-          }
-        });
-        cell.appendChild(medalsContainer);
-      }
+      dayMedals.forEach(m => {
+        const habit = habitsList.find(h => h.habitKey === m.habitType);
+        if (habit) {
+          medalsHtmlList.push(`<span title="${habit.habitName}" style="font-size: 1.1rem; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));">${habit.habitEmoji}</span>`);
+        }
+      });
     }
 
-    cell.appendChild(badgeList);
-  }
+    // Create the visual container inside cell
+    const visualContainer = document.createElement('div');
+    visualContainer.style.cssText = 'display: flex; align-items: center; justify-content: space-between; flex: 1; width: 100%; gap: 6px;';
 
-    container.appendChild(cell);
+    // Tooltip for the day
+    const tooltipText = dayActs.map(act => `${dict['optCat' + act.activity] || act.activity}: ${act.duration}h${act.notes ? ` (${act.notes})` : ''}`).join('\n');
+    visualContainer.title = tooltipText || 'No activities';
+
+    // Pie chart SVG
+    const pieChartSvg = createMiniPieChartSvg(dayActs);
+    const chartDiv = document.createElement('div');
+    chartDiv.style.cssText = 'display: flex; align-items: center; justify-content: center;';
+    chartDiv.innerHTML = pieChartSvg;
+
+    // Medals list
+    const medalsDiv = document.createElement('div');
+    medalsDiv.style.cssText = 'display: flex; gap: 2px; flex-wrap: wrap; justify-content: flex-end; align-items: center;';
+    medalsDiv.innerHTML = medalsHtmlList.join('');
+
+    visualContainer.appendChild(chartDiv);
+    visualContainer.appendChild(medalsDiv);
+    cell.appendChild(visualContainer);
+
+    monthGrid.appendChild(cell);
   }
 }
 
