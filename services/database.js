@@ -536,10 +536,10 @@ const dbService = {
         const medals = [];
 
         const moods = [
-          { emoji: '🧘', label: 'Peaceful', sentiment: 'positive', content: 'امروز تمرکز فوق‌العاده‌ای داشتم. روتین‌های روزانه از جمله مطالعه و مدیتیشن به موقع انجام شدند و احساس آرامش ذهنی عمیقی دارم.' },
-          { emoji: '😊', label: 'Happy', sentiment: 'positive', content: 'روز بسیار پرانرژی و شادی بود! به تمام اهداف ورزشی و مطالعاتی امروزم رسیدم و با دوستانم معاشرت کردم.' },
-          { emoji: '💪', label: 'Motivated', sentiment: 'positive', content: 'تمرینات ورزشی امروز عالی پیش رفت. احساس قدرت و انگیزه بالایی برای یادگیری مفاهیم جدید دارم.' },
-          { emoji: '🔥', label: 'Productive', sentiment: 'positive', content: 'امروز از نظر کاری بسیار پربازده بودم. تمرکز عمیقی روی حل مسائل داشتم و روتین‌هایم کامل انجام شدند.' }
+          { emoji: '🧘', label: 'Peaceful', sentiment: 'positive', content: 'Had an amazing focus today. Daily routines including study and meditation were completed on time, and I feel a deep sense of mental peace.' },
+          { emoji: '😊', label: 'Happy', sentiment: 'positive', content: 'Very energetic and happy day! Met all my athletic and reading goals, and had a great time socializing.' },
+          { emoji: '💪', label: 'Motivated', sentiment: 'positive', content: 'Today\'s workouts went great. Feel strong and highly motivated to learn new concepts.' },
+          { emoji: '🔥', label: 'Productive', sentiment: 'positive', content: 'Extremely productive work day. Deep focus on problem solving and all habits are checked.' }
         ];
 
         for (let day = 1; day <= 30; day++) {
@@ -550,9 +550,9 @@ const dbService = {
           const randId3 = `act3_june_${day}_${Math.floor(Math.random()*1000)}`;
 
           activities.push(
-            [randId1, userId, dateStr, 'Study', 1.5, 8, `مطالعه کتاب مدیریت زمان، صفحه ${day} تا ${day + 10}`, '14:00', '15:30', 'reading'],
-            [randId2, userId, dateStr, 'Exercise', 1.0, 9, 'ورزش پیلاتس و نرمش‌های انعطاف‌پذیری روزانه', '17:00', '18:00', 'exercise'],
-            [randId3, userId, dateStr, 'Meditation', 0.5, 10, 'مدیتیشن آگاهی ذهن و کنترل استرس صبحگاهی', '08:00', '08:30', 'meditation']
+            [randId1, userId, dateStr, 'Study', 1.5, 8, `Study time management book, page ${day} to ${day + 10}`, '14:00', '15:30', 'reading'],
+            [randId2, userId, dateStr, 'Exercise', 1.0, 9, 'Pilates workout and core flexibility routine', '17:00', '18:00', 'exercise'],
+            [randId3, userId, dateStr, 'Meditation', 0.5, 10, 'Mindfulness meditation and morning stress control', '08:00', '08:30', 'meditation']
           );
 
           medals.push(
