@@ -172,7 +172,7 @@ app.post('/api/journal', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   try {
-    const lang = req.user.lang || 'fa';
+    const lang = req.user.lang || 'en';
     const analysis = await parser.analyzeJournalMood(content, lang);
 
     const newEntry = await dbService.addJournalEntry(req.user.id, {
@@ -433,7 +433,7 @@ app.post('/api/parse-input', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'Text input is required' });
   }
   try {
-    const parsedResult = await parser.parseText(text, lang || 'fa');
+    const parsedResult = await parser.parseText(text, lang || 'en');
     res.json(parsedResult);
   } catch (err) {
     console.error("API error parsing text:", err);
@@ -447,7 +447,7 @@ app.post('/api/parse-audio', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'Audio and mimeType are required' });
   }
   try {
-    const parsedResult = await parser.parseAudio(audio, mimeType, lang || 'fa');
+    const parsedResult = await parser.parseAudio(audio, mimeType, lang || 'en');
     res.json(parsedResult);
   } catch (err) {
     console.error("API error parsing audio:", err);
@@ -458,7 +458,7 @@ app.post('/api/parse-audio', authenticateToken, async (req, res) => {
 app.post('/api/assistant/chat', authenticateToken, async (req, res) => {
   const { text, audio, mimeType, lang } = req.body;
   try {
-    const result = await parser.parseAssistantChat(text, audio, mimeType, lang || 'fa');
+    const result = await parser.parseAssistantChat(text, audio, mimeType, lang || 'en');
     res.json(result);
   } catch (err) {
     console.error("API error in assistant chat:", err);
@@ -468,7 +468,7 @@ app.post('/api/assistant/chat', authenticateToken, async (req, res) => {
 
 app.post('/api/suggest-routine', authenticateToken, async (req, res) => {
   const { date, lang } = req.body;
-  const targetLang = lang || 'fa';
+  const targetLang = lang || 'en';
 
   try {
     const [activities, tasks, birthdays] = await Promise.all([
@@ -654,7 +654,7 @@ app.put('/api/activities/:id', authenticateToken, async (req, res) => {
 // 9. AI Wellness Mentor API (RAG-Enabled)
 app.post('/api/mentor/consult', authenticateToken, async (req, res) => {
   const { text, lang } = req.body;
-  const targetLang = lang || 'fa';
+  const targetLang = lang || 'en';
   if (!text) {
     return res.status(400).json({ error: 'Text input is required' });
   }

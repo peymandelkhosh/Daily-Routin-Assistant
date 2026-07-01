@@ -75,7 +75,7 @@ function initializeDatabase() {
         id TEXT PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        lang TEXT DEFAULT 'fa'
+        lang TEXT DEFAULT 'en'
       )
     `);
 
@@ -271,7 +271,7 @@ const dbService = {
             }
           } else {
             dbService.seedUserData(id);
-            resolve({ id, username, lang: 'fa' });
+            resolve({ id, username, lang: 'en' });
           }
         }
       );
@@ -637,9 +637,9 @@ const dbService = {
         
         if (rows.length === 0) {
           const defaults = [
-            { id: `${userId}_reading`, userId, habitKey: 'reading', habitName: 'مطالعه کتاب (حداقل ۱ صفحه)', habitEmoji: '📖', habitDesc: 'عادت روزانه' },
-            { id: `${userId}_meditation`, userId, habitKey: 'meditation', habitName: 'مدیتیشن و تمرکز (حداقل ۱ دقیقه)', habitEmoji: '🧘', habitDesc: 'عادت روزانه' },
-            { id: `${userId}_exercise`, userId, habitKey: 'exercise', habitName: 'ورزش و تندرستی (بدون محدودیت زمان)', habitEmoji: '🏃', habitDesc: 'عادت روزانه' }
+            { id: `${userId}_reading`, userId, habitKey: 'reading', habitName: 'Read a Book (At least 1 page)', habitEmoji: '📖', habitDesc: 'Daily Habit' },
+            { id: `${userId}_meditation`, userId, habitKey: 'meditation', habitName: 'Meditate and Focus (At least 1 minute)', habitEmoji: '🧘', habitDesc: 'Daily Habit' },
+            { id: `${userId}_exercise`, userId, habitKey: 'exercise', habitName: 'Exercise and Fitness (No time limit)', habitEmoji: '🏃', habitDesc: 'Daily Habit' }
           ];
           defaults.forEach(def => {
             db.run(`INSERT OR IGNORE INTO custom_habits (id, userId, habitKey, habitName, habitEmoji, habitDesc) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -670,10 +670,10 @@ const wrappedDbService = {};
 for (const [key, fn] of Object.entries(dbService)) {
   if (typeof fn === 'function') {
     const isWrite = [
-      'registerUser', 'addActivity', 'deleteActivity', 'updateActivity', 'addJournalEntry', 'deleteJournalEntry',
-      'addTask', 'toggleTaskCompleted', 'deleteTask', 'addBirthday', 'deleteBirthday',
-      'addScheduleSlot', 'deleteScheduleSlot', 'toggleScheduleCompleted', 'seedUserData',
-      'toggleMedal', 'addCustomHabit'
+      'registerUser', 'linkTelegramChatId', 'updateUserLang', 'addActivity', 'deleteActivity', 'updateActivity',
+      'addJournalEntry', 'deleteJournalEntry', 'addTask', 'updateTask', 'deleteTask',
+      'addBirthday', 'deleteBirthday', 'addSchedule', 'deleteSchedule', 'toggleMedal',
+      'addCustomHabit', 'seedUserData'
     ].includes(key);
 
     wrappedDbService[key] = async function(...args) {

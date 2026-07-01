@@ -522,7 +522,7 @@ const CATEGORY_COLORS = {
 };
 
 // State variables
-let activeLang = localStorage.getItem('activeLang') || 'fa';
+let activeLang = localStorage.getItem('activeLang') || 'en';
 let token = localStorage.getItem('token') || null;
 let username = localStorage.getItem('username') || null;
 
@@ -921,21 +921,26 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initAuthUI() {
   const islandContainer = document.querySelector('.dynamic-island-container');
   
-  if (!token) {
+  if (!token || !localStorage.getItem('username') || localStorage.getItem('username').toLowerCase() !== 'peyman') {
+    // Clear any mismatching token or previous user/guest session
+    token = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+
     try {
-      // 1. Try to login guest
+      // 1. Try to login unified global user 'peyman'
       let res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'guest', password: 'guestpassword123' })
+        body: JSON.stringify({ username: 'peyman', password: 'peymanpassword123' })
       });
       
-      // 2. If login fails, try to sign up guest
+      // 2. If login fails, try to sign up unified global user 'peyman'
       if (!res.ok) {
         res = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: 'guest', password: 'guestpassword123' })
+          body: JSON.stringify({ username: 'peyman', password: 'peymanpassword123' })
         });
       }
       
@@ -943,14 +948,14 @@ async function initAuthUI() {
         const data = await res.json();
         token = data.token;
         localStorage.setItem('token', token);
-        localStorage.setItem('username', 'guest');
+        localStorage.setItem('username', 'peyman');
         if (data.lang) {
           activeLang = data.lang;
           localStorage.setItem('activeLang', data.lang);
         }
       }
     } catch (err) {
-      console.error("Unified guest auto-login failed:", err);
+      console.error("Unified peyman auto-login failed:", err);
     }
   }
 
@@ -1040,7 +1045,7 @@ async function handleAuthSubmit(e) {
     if (res.ok) {
       token = data.token;
       username = data.username;
-      activeLang = data.lang || 'fa';
+      activeLang = data.lang || 'en';
       localStorage.setItem('token', token);
       localStorage.setItem('username', username);
       localStorage.setItem('activeLang', activeLang);
@@ -1788,7 +1793,11 @@ function initSpeechRecognition() {
   // Dummy function for compatibility
 }
 
+let isAudioStarting = false;
+
 async function startAudioRecording() {
+  if (isAudioStarting || isRecording) return;
+  isAudioStarting = true;
   const dict = TRANSLATIONS[activeLang];
   audioChunks = [];
   try {
@@ -1815,6 +1824,7 @@ async function startAudioRecording() {
 
     mediaRecorder.onstart = () => {
       isRecording = true;
+      isAudioStarting = false;
       micBtn.classList.add('recording');
       micStatus.textContent = activeLang === 'fa' 
         ? '🎙 در حال ضبط صدای شما... برای اتمام دوباره کلیک کنید' 
@@ -1867,6 +1877,7 @@ async function startAudioRecording() {
     mediaRecorder.start();
   } catch (err) {
     console.error("Failed to start media recorder:", err);
+    isAudioStarting = false;
     micStatus.textContent = activeLang === 'fa' 
       ? '❌ دسترسی به میکروفون مسدود شده است یا مرورگر پشتیبانی نمی‌کند.' 
       : '❌ Microphone access error or unsupported browser.';
@@ -1880,6 +1891,7 @@ function stopAudioRecording() {
 }
 
 function toggleRecording() {
+  if (isAudioStarting) return; // Ignore clicks while requesting permissions
   if (isRecording) {
     stopAudioRecording();
   } else {
@@ -4078,8 +4090,11 @@ function bindJournalWriterEvents() {
     });
   }
   
+  let isJournalStarting = false;
   if (micBtnJournal && contentInput) {
     micBtnJournal.addEventListener('click', async () => {
+      if (isJournalStarting) return; // Prevent double clicking while requesting permission
+      
       if (isJournalRecording) {
         if (journalMediaRecorder && journalMediaRecorder.state !== 'inactive') {
           journalMediaRecorder.stop();
@@ -4087,6 +4102,7 @@ function bindJournalWriterEvents() {
         isJournalRecording = false;
         micBtnJournal.classList.remove('recording');
       } else {
+        isJournalStarting = true;
         journalAudioChunks = [];
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -4110,6 +4126,7 @@ function bindJournalWriterEvents() {
           
           journalMediaRecorder.onstart = () => {
             isJournalRecording = true;
+            isJournalStarting = false;
             micBtnJournal.classList.add('recording');
             contentInput.value = '';
             contentInput.placeholder = activeLang === 'fa' ? '🎙 در حال ضبط صحبت‌های شما... دوباره دکمه میکروفون را بزنید تا متوقف شود.' : '🎙 Recording... Click mic button again to stop.';
@@ -4160,6 +4177,7 @@ function bindJournalWriterEvents() {
           journalMediaRecorder.start();
         } catch (err) {
           console.error(err);
+          isJournalStarting = false;
           alert(activeLang === 'fa' ? 'دسترسی به میکروفون داده نشد یا پشتیبانی نمی‌شود.' : 'Microphone access denied or unsupported.');
         }
       }
