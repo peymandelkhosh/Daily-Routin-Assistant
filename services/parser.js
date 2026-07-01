@@ -6,7 +6,10 @@ const SYSTEM_PROMPT_TEMPLATE = (lang) => `
   Your task is to analyze the input (which could be text or audio) and extract structured information of one of 5 types: "activity", "journal", "task", "schedule", or "birthday".
   
   Target Language for Output:
-  - Write the output string fields ("notes" for activity, "content" for journal, "title" for task, "activity" for schedule, "name" for birthday) in the SAME language as the input text/audio, or matching the target language: "${lang}". Keep translations natural.
+  - If the target language is "en" (English), you MUST write all output string fields ("notes" for activity, "content" for journal, "title" for task, "activity" for schedule, "name" for birthday) in English, even if the user speaks or writes in Persian (Farsi) or German (translate their input to English).
+  - If the target language is "fa", write the output string fields in Persian (Farsi).
+  - If the target language is "de", write the output string fields in German.
+  - Keep translations natural, professional, and fluent.
 
   How to determine the "type":
   1. "birthday": If the user mentions a birthday (e.g. "تولد سینا ۱۴ ژوئن است", "Sina's birthday is June 14th", "remember birthday of Sara on 05-20").

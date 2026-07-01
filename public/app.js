@@ -2606,7 +2606,14 @@ function switchLanguage(lang) {
     'lbl-add-medal-emoji': dict.lblAddMedalEmoji,
     'lbl-add-medal-key': dict.lblAddMedalKey,
     'lbl-add-medal-desc': dict.lblAddMedalDesc,
-    'btn-add-medal-save': dict.btnAddMedalSave
+    'btn-add-medal-save': dict.btnAddMedalSave,
+    'lbl-journal-writer-title': dict.lblJournalWriterTitle,
+    'lbl-journal-writer-desc': dict.lblJournalWriterDesc,
+    'lbl-journal-write-date': dict.lblJournalWriteDate,
+    'lbl-journal-write-content': dict.lblJournalWriteContent,
+    'lbl-journal-save-btn': dict.lblJournalSaveBtn,
+    'lbl-journal-history-title': dict.lblJournalHistoryTitle,
+    'lbl-mood-sticker-title': dict.lblMoodStickerTitle
   };
 
   for (const [id, text] of Object.entries(elementsToTranslate)) {
@@ -2635,6 +2642,22 @@ function switchLanguage(lang) {
 
   const notesText = document.getElementById('notes');
   if (notesText) notesText.placeholder = activeLang === 'fa' ? 'توضیحات خود را بنویسید...' : (activeLang === 'de' ? 'Beschreibung schreiben...' : 'Write notes / details...');
+
+  const journalWriterContent = document.getElementById('journal-writer-content');
+  if (journalWriterContent) {
+    journalWriterContent.placeholder = activeLang === 'fa' 
+      ? 'امروز چطور بود؟ چه کارهایی انجام دادید و چه احساسی دارید...' 
+      : (activeLang === 'de' 
+         ? 'Wie war es heute? Was hast du gemacht...' 
+         : "How was today? What did you do and how do you feel...");
+  }
+
+  const micBtnJournal = document.getElementById('journal-mic-btn');
+  if (micBtnJournal) {
+    micBtnJournal.title = activeLang === 'fa' 
+      ? 'ضبط صوتی یادداشت' 
+      : (activeLang === 'de' ? 'Tagebuch aufnehmen' : 'Record Journal Entry');
+  }
 
   const micBtn = document.getElementById('mic-btn');
   if (micBtn) micBtn.title = activeLang === 'fa' ? 'برای شروع صحبت کلیک کنید' : (activeLang === 'de' ? 'Klicken, um zu sprechen' : 'Click to start speaking');
@@ -4063,12 +4086,23 @@ function bindJournalWriterEvents() {
         }
         isJournalRecording = false;
         micBtnJournal.classList.remove('recording');
-        contentInput.placeholder = activeLang === 'fa' ? 'امروز چطور بود؟ چه کارهایی انجام دادید...' : 'How was today? What did you do...';
       } else {
         journalAudioChunks = [];
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          journalMediaRecorder = new MediaRecorder(stream);
+          
+          let mimeType = 'audio/webm';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'audio/ogg';
+          }
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'audio/mp4';
+          }
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = ''; 
+          }
+
+          journalMediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
           
           journalMediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) journalAudioChunks.push(event.data);
@@ -4083,7 +4117,7 @@ function bindJournalWriterEvents() {
           
           journalMediaRecorder.onstop = async () => {
             contentInput.placeholder = activeLang === 'fa' ? '⏳ در حال تبدیل صدا به متن...' : '⏳ Transcribing audio...';
-            const audioBlob = new Blob(journalAudioChunks, { type: 'audio/webm' });
+            const audioBlob = new Blob(journalAudioChunks, { type: journalMediaRecorder.mimeType || 'audio/webm' });
             stream.getTracks().forEach(track => track.stop());
             
             const reader = new FileReader();
@@ -4111,9 +4145,12 @@ function bindJournalWriterEvents() {
                   } else {
                     contentInput.value = data.notes || '';
                   }
+                } else {
+                  alert(activeLang === 'fa' ? '❌ خطا در تحلیل صوتی. لطفاً مجدداً صحبت کنید.' : '❌ Voice analysis failed. Please try speaking again.');
                 }
               } catch (err) {
                 console.error(err);
+                alert(activeLang === 'fa' ? '❌ خطا در ارتباط با سرور.' : '❌ Error connecting to server.');
               } finally {
                 contentInput.placeholder = activeLang === 'fa' ? 'امروز چطور بود؟ چه کارهایی انجام دادید...' : 'How was today? What did you do...';
               }
@@ -4123,7 +4160,7 @@ function bindJournalWriterEvents() {
           journalMediaRecorder.start();
         } catch (err) {
           console.error(err);
-          alert(activeLang === 'fa' ? 'دسترسی به میکروفون داده نشد.' : 'Microphone access denied.');
+          alert(activeLang === 'fa' ? 'دسترسی به میکروفون داده نشد یا پشتیبانی نمی‌شود.' : 'Microphone access denied or unsupported.');
         }
       }
     });
