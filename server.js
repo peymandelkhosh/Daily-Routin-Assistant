@@ -368,7 +368,7 @@ app.put('/api/users/lang', authenticateToken, async (req, res) => {
 // 7.5. User Seeding API
 app.post('/api/users/seed', authenticateToken, async (req, res) => {
   try {
-    dbService.seedUserData(req.user.id);
+    await dbService.seedUserData(req.user.id);
     res.json({ message: 'Database seeded successfully for testing June 2026 logs' });
   } catch (err) {
     console.error("Error seeding user database:", err);

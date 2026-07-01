@@ -524,76 +524,74 @@ const dbService = {
   },
 
   seedUserData: (userId) => {
-    const today = new Date();
-    const activities = [];
-    const journals = [];
-    
-    // Create 10 days of historical logs for June 2026
-    for (let i = 9; i >= 0; i--) {
-      const logDate = new Date(today);
-      logDate.setDate(today.getDate() - i);
-      const dateStr = logDate.toISOString().split('T')[0];
-      
-      activities.push(
-        [Date.now().toString() + '_act1_' + i, userId, dateStr, 'Work', parseFloat((5.5 + Math.random() * 2).toFixed(1)), 7 + Math.floor(Math.random() * 3), 'کدنویسی و توسعه فرانت‌اند پروژه روتین'],
-        [Date.now().toString() + '_act2_' + i, userId, dateStr, 'Exercise', 1.0, 8 + Math.floor(Math.random() * 3), 'ورزش باشگاه و پیاده‌روی عصرگاهی'],
-        [Date.now().toString() + '_act3_' + i, userId, dateStr, 'Study', 1.5, 6 + Math.floor(Math.random() * 3), 'مطالع مستندات فنی و یادگیری زبان']
-      );
-      
-      journals.push(
-        [Date.now().toString() + '_jou_' + i, userId, dateStr, `امروز کارهای خوبی برای بهبود روتین روزانه‌ام انجام دادم. تمرکز کافی داشتم و وضعیت سلامتی بدنی‌ام هم عالی بود. امیدوارم روزهای آینده هم با همین روند جلو بروم.`, 'positive']
-      );
-    }
+    return new Promise((resolve, reject) => {
+      db.serialize(() => {
+        // Delete existing mock data for June 2026 to avoid duplicates
+        db.run("DELETE FROM activities WHERE userId = ? AND date LIKE '2026-06-%'", [userId], (err) => { if(err) console.error(err); });
+        db.run("DELETE FROM journal_entries WHERE userId = ? AND date LIKE '2026-06-%'", [userId], (err) => { if(err) console.error(err); });
+        db.run("DELETE FROM user_medals WHERE userId = ? AND date LIKE '2026-06-%'", [userId], (err) => { if(err) console.error(err); });
 
-    db.serialize(() => {
-      const actStmt = db.prepare(`
-        INSERT INTO activities (id, userId, date, activity, duration, productivity, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
-      activities.forEach(row => actStmt.run(row));
-      actStmt.finalize();
+        const activities = [];
+        const journals = [];
+        const medals = [];
 
-      const jouStmt = db.prepare(`
-        INSERT INTO journal_entries (id, userId, date, content, sentiment)
-        VALUES (?, ?, ?, ?, ?)
-      `);
-      journals.forEach(row => jouStmt.run(row));
-      jouStmt.finalize();
-      
-      const tasks = [
-        [Date.now().toString() + '_t1', userId, today.toISOString().split('T')[0], 'پایان‌نامه دانشگاه و تحقیقات', today.toISOString().split('T')[0], 1, 0],
-        [Date.now().toString() + '_t2', userId, today.toISOString().split('T')[0], 'خرید اقلام خانه و کارهای تمیزکاری', today.toISOString().split('T')[0], 0, 0]
-      ];
-      const taskStmt = db.prepare(`
-        INSERT INTO tasks (id, userId, date, title, dueDate, requiresPrep, completed)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
-      tasks.forEach(row => taskStmt.run(row));
-      taskStmt.finalize();
+        const moods = [
+          { emoji: '🧘', label: 'Peaceful', sentiment: 'positive', content: 'امروز تمرکز فوق‌العاده‌ای داشتم. روتین‌های روزانه از جمله مطالعه و مدیتیشن به موقع انجام شدند و احساس آرامش ذهنی عمیقی دارم.' },
+          { emoji: '😊', label: 'Happy', sentiment: 'positive', content: 'روز بسیار پرانرژی و شادی بود! به تمام اهداف ورزشی و مطالعاتی امروزم رسیدم و با دوستانم معاشرت کردم.' },
+          { emoji: '💪', label: 'Motivated', sentiment: 'positive', content: 'تمرینات ورزشی امروز عالی پیش رفت. احساس قدرت و انگیزه بالایی برای یادگیری مفاهیم جدید دارم.' },
+          { emoji: '🔥', label: 'Productive', sentiment: 'positive', content: 'امروز از نظر کاری بسیار پربازده بودم. تمرکز عمیقی روی حل مسائل داشتم و روتین‌هایم کامل انجام شدند.' }
+        ];
 
-      // Seed medals
-      const medals = [];
-      for (let i = 9; i >= 0; i--) {
-        const logDate = new Date(today);
-        logDate.setDate(today.getDate() - i);
-        const dateStr = logDate.toISOString().split('T')[0];
-        
-        if (i % 2 === 0) {
-          medals.push([`${userId}_${dateStr}_reading`, userId, dateStr, 'reading', 1]);
+        for (let day = 1; day <= 30; day++) {
+          const dateStr = `2026-06-${day.toString().padStart(2, '0')}`;
+          
+          const randId1 = `act1_june_${day}_${Math.floor(Math.random()*1000)}`;
+          const randId2 = `act2_june_${day}_${Math.floor(Math.random()*1000)}`;
+          const randId3 = `act3_june_${day}_${Math.floor(Math.random()*1000)}`;
+
+          activities.push(
+            [randId1, userId, dateStr, 'Study', 1.5, 8, `مطالعه کتاب مدیریت زمان، صفحه ${day} تا ${day + 10}`, '14:00', '15:30', 'reading'],
+            [randId2, userId, dateStr, 'Exercise', 1.0, 9, 'ورزش پیلاتس و نرمش‌های انعطاف‌پذیری روزانه', '17:00', '18:00', 'exercise'],
+            [randId3, userId, dateStr, 'Meditation', 0.5, 10, 'مدیتیشن آگاهی ذهن و کنترل استرس صبحگاهی', '08:00', '08:30', 'meditation']
+          );
+
+          medals.push(
+            [`${userId}_${dateStr}_reading`, userId, dateStr, 'reading', 1],
+            [`${userId}_${dateStr}_exercise`, userId, dateStr, 'exercise', 1],
+            [`${userId}_${dateStr}_meditation`, userId, dateStr, 'meditation', 1]
+          );
+
+          const mood = moods[day % moods.length];
+          const randIdJou = `jou_june_${day}_${Math.floor(Math.random()*1000)}`;
+          journals.push(
+            [randIdJou, userId, dateStr, mood.content, mood.sentiment, mood.emoji, mood.label]
+          );
         }
-        if (i !== 3 && i !== 7) {
-          medals.push([`${userId}_${dateStr}_exercise`, userId, dateStr, 'exercise', 1]);
-        }
-        if (i % 3 !== 0) {
-          medals.push([`${userId}_${dateStr}_meditation`, userId, dateStr, 'meditation', 1]);
-        }
-      }
-      const medalStmt = db.prepare(`
-        INSERT OR REPLACE INTO user_medals (id, userId, date, habitType, completed)
-        VALUES (?, ?, ?, ?, ?)
-      `);
-      medals.forEach(row => medalStmt.run(row));
-      medalStmt.finalize();
+
+        const actStmt = db.prepare(`
+          INSERT INTO activities (id, userId, date, activity, duration, productivity, notes, startTime, endTime, associatedMedalKeys)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        activities.forEach(row => actStmt.run(row));
+        actStmt.finalize();
+
+        const jouStmt = db.prepare(`
+          INSERT INTO journal_entries (id, userId, date, content, sentiment, mood_emoji, mood_label)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `);
+        journals.forEach(row => jouStmt.run(row));
+        jouStmt.finalize();
+
+        const medalStmt = db.prepare(`
+          INSERT OR REPLACE INTO user_medals (id, userId, date, habitType, completed)
+          VALUES (?, ?, ?, ?, ?)
+        `);
+        medals.forEach(row => medalStmt.run(row));
+        medalStmt.finalize((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
     });
   },
 
@@ -674,7 +672,7 @@ for (const [key, fn] of Object.entries(dbService)) {
     const isWrite = [
       'registerUser', 'addActivity', 'deleteActivity', 'updateActivity', 'addJournalEntry', 'deleteJournalEntry',
       'addTask', 'toggleTaskCompleted', 'deleteTask', 'addBirthday', 'deleteBirthday',
-      'addScheduleSlot', 'deleteScheduleSlot', 'toggleScheduleCompleted', 'seedMockData',
+      'addScheduleSlot', 'deleteScheduleSlot', 'toggleScheduleCompleted', 'seedUserData',
       'toggleMedal', 'addCustomHabit'
     ].includes(key);
 
