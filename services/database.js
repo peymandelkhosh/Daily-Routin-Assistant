@@ -2,6 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const gcsSync = require('./gcs_sync');
 
 const dbPath = process.env.DATABASE_PATH || './routine_assistant.db';
 
@@ -11,14 +12,56 @@ if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Failed to connect to SQLite database:', err);
-  } else {
-    console.log(`Connected to SQLite database at: ${dbPath}`);
-    initializeDatabase();
+let db = null;
+let lastSyncCheck = 0;
+
+function getDb() {
+  if (!db) {
+    db = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        console.error('Failed to connect to SQLite database:', err);
+      } else {
+        console.log(`Connected to SQLite database at: ${dbPath}`);
+        initializeDatabase();
+      }
+    });
   }
-});
+  return db;
+}
+
+function closeDbConnection() {
+  return new Promise((resolve) => {
+    if (db) {
+      db.close((err) => {
+        if (err) console.error('Error closing DB:', err);
+        db = null;
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  });
+}
+
+async function ensureFreshDb() {
+  const now = Date.now();
+  if (now - lastSyncCheck > 10000) { // 10s throttle
+    lastSyncCheck = now;
+    try {
+      const isNew = await gcsSync.syncIfNeeded();
+      if (isNew) {
+        console.log('Database updated from GCS, closing and reopening connection...');
+        await closeDbConnection();
+        getDb();
+      }
+    } catch (err) {
+      console.error('Error checking GCS sync:', err.message);
+    }
+  }
+}
+
+// Open initial database connection
+getDb();
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
@@ -47,7 +90,8 @@ function initializeDatabase() {
         productivity INTEGER NOT NULL,
         notes TEXT,
         startTime TEXT,
-        endTime TEXT
+        endTime TEXT,
+        associatedMedalKeys TEXT
       )
     `);
 
@@ -152,6 +196,12 @@ function initializeDatabase() {
     db.run(`ALTER TABLE activities ADD COLUMN endTime TEXT`, (err) => {
       if (err && !err.message.includes('duplicate column name') && !err.message.includes('already exists')) {
         console.log(`Migration log for activities endTime: ${err.message}`);
+      }
+    });
+
+    db.run(`ALTER TABLE activities ADD COLUMN associatedMedalKeys TEXT`, (err) => {
+      if (err && !err.message.includes('duplicate column name') && !err.message.includes('already exists')) {
+        console.log(`Migration log for activities associatedMedalKeys: ${err.message}`);
       }
     });
 
@@ -267,12 +317,12 @@ const dbService = {
   },
 
   addActivity: (userId, activityLog) => {
-    const { id, date, activity, duration, productivity, notes, startTime, endTime } = activityLog;
+    const { id, date, activity, duration, productivity, notes, startTime, endTime, associatedMedalKeys } = activityLog;
     return new Promise((resolve, reject) => {
       db.run(
-        `INSERT INTO activities (id, userId, date, activity, duration, productivity, notes, startTime, endTime) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, userId, date, activity, duration, productivity, notes, startTime, endTime],
+        `INSERT INTO activities (id, userId, date, activity, duration, productivity, notes, startTime, endTime, associatedMedalKeys) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, userId, date, activity, duration, productivity, notes, startTime, endTime, associatedMedalKeys || null],
         function (err) {
           if (err) reject(err);
           else resolve({ id, ...activityLog });
@@ -291,13 +341,13 @@ const dbService = {
   },
 
   updateActivity: (userId, id, activityLog) => {
-    const { date, activity, duration, productivity, notes, startTime, endTime } = activityLog;
+    const { date, activity, duration, productivity, notes, startTime, endTime, associatedMedalKeys } = activityLog;
     return new Promise((resolve, reject) => {
       db.run(
         `UPDATE activities 
-         SET date = ?, activity = ?, duration = ?, productivity = ?, notes = ?, startTime = ?, endTime = ?
+         SET date = ?, activity = ?, duration = ?, productivity = ?, notes = ?, startTime = ?, endTime = ?, associatedMedalKeys = ?
          WHERE id = ? AND userId = ?`,
-        [date, activity, duration, productivity, notes, startTime, endTime, id, userId],
+        [date, activity, duration, productivity, notes, startTime, endTime, associatedMedalKeys || null, id, userId],
         function (err) {
           if (err) reject(err);
           else resolve(this.changes);
@@ -618,4 +668,31 @@ const dbService = {
   }
 };
 
-module.exports = dbService;
+const wrappedDbService = {};
+for (const [key, fn] of Object.entries(dbService)) {
+  if (typeof fn === 'function') {
+    const isWrite = [
+      'registerUser', 'addActivity', 'deleteActivity', 'updateActivity', 'addJournalEntry', 'deleteJournalEntry',
+      'addTask', 'toggleTaskCompleted', 'deleteTask', 'addBirthday', 'deleteBirthday',
+      'addScheduleSlot', 'deleteScheduleSlot', 'toggleScheduleCompleted', 'seedMockData',
+      'toggleMedal', 'addCustomHabit'
+    ].includes(key);
+
+    wrappedDbService[key] = async function(...args) {
+      // Ensure we have the fresh database file from GCS
+      await ensureFreshDb();
+      // Execute query
+      const result = await fn(...args);
+      // If it's a write query, upload to GCS immediately
+      if (isWrite) {
+        // Run upload in background (non-blocking for UI responsiveness)
+        gcsSync.uploadDb().catch(err => console.error('Upload GCS error:', err));
+      }
+      return result;
+    };
+  } else {
+    wrappedDbService[key] = fn;
+  }
+}
+
+module.exports = wrappedDbService;

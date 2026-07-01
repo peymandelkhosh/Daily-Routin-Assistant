@@ -716,10 +716,53 @@ async function analyzeJournalMood(text, lang = 'fa') {
   };
 }
 
+async function evaluateSemanticMedals(notes, habitsList) {
+  const keys = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_BACKUP].filter(k => k && k !== 'YOUR_GEMINI_API_KEY_HERE');
+  if (keys.length === 0 || !notes) return [];
+
+  // Build the list of habit targets for the prompt
+  const habitsFormatted = habitsList.map(h => `- Key: "${h.habitKey}", Name: "${h.habitName}", Description/Target: "${h.habitDesc}"`).join('\n');
+
+  const prompt = `
+You are a semantic evaluator for a personal routine assistant app.
+The user logged an activity with these notes: "${notes}".
+
+Here are the user's defined dynamic habits/medals:
+${habitsFormatted}
+
+Determine which of these habits are semantically satisfied by the user's log.
+A habit is satisfied if the activity concept and target match the user's description.
+Zero-Shot classification: detect meaning, synonyms, and intent across Persian, English, and German.
+
+Output Format: Strictly return a JSON array containing only the habit keys that were satisfied, for example: ["reading", "exercise"]. If none match, return [].
+Do NOT write any markdown fencing, explanations, or extra characters. Just the JSON array.
+`;
+
+  for (const apiKey of keys) {
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-flash",
+        generationConfig: { responseMimeType: "application/json" }
+      });
+      const result = await model.generateContent([prompt]);
+      const responseText = result.response.text().trim();
+      const matchedKeys = JSON.parse(responseText);
+      if (Array.isArray(matchedKeys)) {
+        return matchedKeys;
+      }
+    } catch (err) {
+      console.warn("AI Semantic Medal evaluation failed, trying next key", err.message);
+    }
+  }
+  return [];
+}
+
 module.exports = {
   parseText,
   parseAudio,
   parseAssistantChat,
-  analyzeJournalMood
+  analyzeJournalMood,
+  evaluateSemanticMedals
 };
 

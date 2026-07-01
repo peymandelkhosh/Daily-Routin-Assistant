@@ -976,6 +976,17 @@ async function initAuthUI() {
     fetchBirthdays();
     fetchSchedules();
     fetchAnniversaries(today);
+
+    // Setup silent background auto-polling every 30 seconds
+    setInterval(() => {
+      if (document.visibilityState === 'visible' && localStorage.getItem('token')) {
+        fetchData();
+        fetchTasks();
+        fetchBirthdays();
+        fetchSchedules();
+        fetchAnniversaries(new Date().toISOString().split('T')[0]);
+      }
+    }, 30000);
     
     // Check if tutorial needed
     if (!localStorage.getItem('tutorial-finished')) {
@@ -2312,6 +2323,20 @@ function updateStats() {
     : (activeLang === 'de' ? `${count} Einträge` : `${count} entries`);
 }
 
+function getMedalEmojisHtml(associatedMedalKeys) {
+  if (!associatedMedalKeys) return '';
+  const keys = associatedMedalKeys.split(',');
+  let html = '<div class="log-card-medals" style="margin-top: 4px; display: flex; gap: 4px;">';
+  keys.forEach(k => {
+    const habit = habitsList.find(h => h.habitKey === k.trim());
+    if (habit) {
+      html += `<span title="${habit.habitName}" style="font-size: 1.1rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${habit.habitEmoji}</span>`;
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
 function renderActivitiesTable() {
   const tbody = document.getElementById('logs-tbody');
   if (!tbody) return;
@@ -2328,6 +2353,7 @@ function renderActivitiesTable() {
     
     const catClass = `badge-${(log.activity || '').toLowerCase()}`;
     const catName = dict.categoryNames[log.activity] || log.activity;
+    const medalsHtml = getMedalEmojisHtml(log.associatedMedalKeys);
     
     let dotColor = '#94a3b8';
     if (log.productivity >= 8) dotColor = 'var(--accent-green)';
@@ -2338,7 +2364,10 @@ function renderActivitiesTable() {
 
     tr.innerHTML = `
       <td style="white-space: nowrap; font-size: 0.8rem;">${formattedDate}</td>
-      <td><span class="badge ${catClass}">${catName}</span></td>
+      <td>
+        <span class="badge ${catClass}">${catName}</span>
+        ${medalsHtml}
+      </td>
       <td style="font-family: 'Inter', sans-serif; font-weight: 600;">
         ${log.duration} ${activeLang === 'fa' ? 'ساعت' : (activeLang === 'de' ? 'Std' : 'hrs')}
         ${(log.startTime && log.endTime) ? `<br><span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(${log.startTime} - ${log.endTime})</span>` : ''}
@@ -2843,7 +2872,20 @@ function renderCalendar() {
   if (!dateTxt) return;
 
   if (currentCalendarView === 'day') {
-    dateTxt.textContent = formatDateLocal(currentCalendarDate);
+    let dayMedalsHtml = '';
+    if (typeof medalLogs !== 'undefined' && medalLogs.length > 0) {
+      const dateStr = currentCalendarDate.toISOString().split('T')[0];
+      const dayMedals = medalLogs.filter(m => m.date === dateStr && m.completed === 1);
+      if (dayMedals.length > 0) {
+        dayMedals.forEach(m => {
+          const habit = habitsList.find(h => h.habitKey === m.habitType);
+          const emoji = habit ? habit.habitEmoji : '🏆';
+          const name = habit ? habit.habitName : m.habitType;
+          dayMedalsHtml += ` <span title="${name}" style="font-size: 1.2rem; margin-left: 4px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));">${emoji}</span>`;
+        });
+      }
+    }
+    dateTxt.innerHTML = formatDateLocal(currentCalendarDate) + dayMedalsHtml;
     renderDayView();
   } else if (currentCalendarView === 'week') {
     const startOfWeek = getStartOfWeek(currentCalendarDate);
@@ -2931,11 +2973,31 @@ function renderWeekView() {
   for (let i = 0; i < 7; i++) {
     const dayDate = new Date(startOfWeek);
     dayDate.setDate(dayDate.getDate() + i);
+    const dayDateStr = dayDate.toISOString().split('T')[0];
+
+    let medalsHeaderHtml = '';
+    if (typeof medalLogs !== 'undefined' && medalLogs.length > 0) {
+      const dayMedals = medalLogs.filter(m => m.date === dayDateStr && m.completed === 1);
+      if (dayMedals.length > 0) {
+        medalsHeaderHtml = '<div style="display: flex; gap: 2px; justify-content: center; margin-top: 4px;">';
+        dayMedals.forEach(m => {
+          const habit = habitsList.find(h => h.habitKey === m.habitType);
+          if (habit) {
+            medalsHeaderHtml += `<span title="${habit.habitName}" style="font-size: 1.1rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));">${habit.habitEmoji}</span>`;
+          }
+        });
+        medalsHeaderHtml += '</div>';
+      }
+    }
 
     const cell = document.createElement('div');
-    const isToday = dayDate.toISOString().split('T')[0] === todayStr;
+    const isToday = dayDateStr === todayStr;
     cell.className = `cal-week-header-cell ${isToday ? 'active-day' : ''}`;
-    cell.innerHTML = `<div>${daysOfWeek[i]}</div><div style="font-size: 1.1rem; font-weight:800; margin-top:3px;">${dayDate.getDate()}</div>`;
+    cell.innerHTML = `
+      <div>${daysOfWeek[i]}</div>
+      <div style="font-size: 1.1rem; font-weight:800; margin-top:3px;">${dayDate.getDate()}</div>
+      ${medalsHeaderHtml}
+    `;
     headerRow.appendChild(cell);
   }
   container.appendChild(headerRow);
@@ -3065,17 +3127,22 @@ function renderMonthView() {
         badgeList.appendChild(badge);
       });
 
-    // Render day medals indicators
+    // Render day medals indicators (actual emojis)
     if (typeof medalLogs !== 'undefined' && medalLogs.length > 0) {
       const dayMedals = medalLogs.filter(m => m.date === cellDateStr && m.completed === 1);
       if (dayMedals.length > 0) {
         const medalsContainer = document.createElement('div');
         medalsContainer.className = 'day-medals-container';
+        medalsContainer.style.cssText = 'display: flex; gap: 2px; justify-content: flex-start; margin-top: 4px; padding: 2px 5px;';
         dayMedals.forEach(m => {
-          const dot = document.createElement('div');
-          dot.className = `cal-medal-dot ${m.habitType}`;
-          dot.title = m.habitType === 'reading' ? 'مطالعه کتاب' : (m.habitType === 'meditation' ? 'مدیتیشن' : 'ورزش');
-          medalsContainer.appendChild(dot);
+          const habit = habitsList.find(h => h.habitKey === m.habitType);
+          if (habit) {
+            const span = document.createElement('span');
+            span.style.cssText = 'font-size: 0.95rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));';
+            span.textContent = habit.habitEmoji;
+            span.title = habit.habitName;
+            medalsContainer.appendChild(span);
+          }
         });
         cell.appendChild(medalsContainer);
       }
@@ -3277,6 +3344,7 @@ function createActivityCardElement(act) {
 
   const displayTime = act.startTime && act.endTime ? `${act.startTime} - ${act.endTime}` : `${act.duration}h`;
   const noteSnippet = act.notes ? `<div class="cal-card-notes">${act.notes}</div>` : '';
+  const medalsHtml = getMedalEmojisHtml(act.associatedMedalKeys);
 
   card.innerHTML = `
     <div class="cal-card-header">
@@ -3287,6 +3355,7 @@ function createActivityCardElement(act) {
       </div>
     </div>
     <div class="cal-card-time">${displayTime} (Prod: ${act.productivity}/10)</div>
+    ${medalsHtml}
   `;
   return card;
 }

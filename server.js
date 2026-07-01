@@ -97,6 +97,27 @@ app.post('/api/activities', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   try {
+    // 1. Rules-based defaults
+    const matchedKeys = [];
+    const notesLower = (notes || '').toLowerCase();
+    if (activity === 'Exercise') matchedKeys.push('exercise');
+    if (activity === 'Meditation') matchedKeys.push('meditation');
+    if (activity === 'Study' && (notesLower.includes('کتاب') || notesLower.includes('book') || notesLower.includes('صفحه') || notesLower.includes('page'))) {
+      matchedKeys.push('reading');
+    }
+
+    // 2. Run AI Semantic classification
+    try {
+      const habitsList = await dbService.getCustomHabits(req.user.id);
+      const aiMatched = await parser.evaluateSemanticMedals(notes || '', habitsList);
+      aiMatched.forEach(k => {
+        if (!matchedKeys.includes(k)) matchedKeys.push(k);
+      });
+    } catch (err) {
+      console.warn("Could not evaluate medals semantically via AI:", err.message);
+    }
+
+    // 3. Save to database
     const newLog = await dbService.addActivity(req.user.id, {
       id: Date.now().toString(),
       date,
@@ -105,18 +126,13 @@ app.post('/api/activities', authenticateToken, async (req, res) => {
       productivity: parseInt(productivity),
       notes: notes || '',
       startTime: startTime || null,
-      endTime: endTime || null
+      endTime: endTime || null,
+      associatedMedalKeys: matchedKeys.length > 0 ? matchedKeys.join(',') : null
     });
 
-    // Auto-award medals based on logged activity details
-    const actLower = activity.toLowerCase();
-    const notesLower = (notes || '').toLowerCase();
-    if (activity === 'Exercise') {
-      await dbService.toggleMedal(req.user.id, date, 'exercise', true);
-    } else if (activity === 'Study' && (notesLower.includes('کتاب') || notesLower.includes('book') || notesLower.includes('صفحه') || notesLower.includes('page'))) {
-      await dbService.toggleMedal(req.user.id, date, 'reading', true);
-    } else if (activity === 'Meditation') {
-      await dbService.toggleMedal(req.user.id, date, 'meditation', true);
+    // 4. Auto-award medals in user_medals table
+    for (const key of matchedKeys) {
+      await dbService.toggleMedal(req.user.id, date, key, true);
     }
 
     res.status(201).json(newLog);
@@ -588,6 +604,27 @@ app.put('/api/activities/:id', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   try {
+    // 1. Rules-based defaults
+    const matchedKeys = [];
+    const notesLower = (notes || '').toLowerCase();
+    if (activity === 'Exercise') matchedKeys.push('exercise');
+    if (activity === 'Meditation') matchedKeys.push('meditation');
+    if (activity === 'Study' && (notesLower.includes('کتاب') || notesLower.includes('book') || notesLower.includes('صفحه') || notesLower.includes('page'))) {
+      matchedKeys.push('reading');
+    }
+
+    // 2. Run AI Semantic classification
+    try {
+      const habitsList = await dbService.getCustomHabits(req.user.id);
+      const aiMatched = await parser.evaluateSemanticMedals(notes || '', habitsList);
+      aiMatched.forEach(k => {
+        if (!matchedKeys.includes(k)) matchedKeys.push(k);
+      });
+    } catch (err) {
+      console.warn("Could not evaluate medals semantically via AI during update:", err.message);
+    }
+
+    // 3. Update database
     const changes = await dbService.updateActivity(req.user.id, req.params.id, {
       date,
       activity,
@@ -595,11 +632,18 @@ app.put('/api/activities/:id', authenticateToken, async (req, res) => {
       productivity: parseInt(productivity),
       notes: notes || '',
       startTime: startTime || null,
-      endTime: endTime || null
+      endTime: endTime || null,
+      associatedMedalKeys: matchedKeys.length > 0 ? matchedKeys.join(',') : null
     });
     if (changes === 0) {
       return res.status(404).json({ error: 'Activity not found' });
     }
+
+    // 4. Auto-award medals in user_medals table
+    for (const key of matchedKeys) {
+      await dbService.toggleMedal(req.user.id, date, key, true);
+    }
+
     res.json({ message: 'Activity updated successfully' });
   } catch (err) {
     console.error("API error updating activity:", err);
